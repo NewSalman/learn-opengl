@@ -8,21 +8,23 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using MyDailyLife.Objects;
 
-namespace MyDailyLife
+namespace MyDailyLife.Shaders
 {
-    public class Shader
+    abstract public class Shader
     {
         public int Handle;
 
         private readonly int VertexShader;
         private readonly int FragmentShader;
         private bool disposedValue = false;
+        //private int SharedUniformBlockIndex;
 
         public Shader(string vertexPath, string fragmentPath)
         {
-            string vertexShaderSource = File.ReadAllText($"Shaders/{vertexPath}");
-            string fragmentShaderSource = File.ReadAllText($"Shaders/{fragmentPath}");
+            string vertexShaderSource = File.ReadAllText($"Assets/Shaders/{vertexPath}");
+            string fragmentShaderSource = File.ReadAllText($"Assets/Shaders/{fragmentPath}");
 
             VertexShader = GL.CreateShader(ShaderType.VertexShader);
             GL.ShaderSource(VertexShader, vertexShaderSource);
@@ -75,6 +77,8 @@ namespace MyDailyLife
         public void Use()
         {
             GL.UseProgram(Handle);
+
+            this.ActivateTextures();
         }
 
         protected virtual void Dispose(bool disposing)
@@ -85,6 +89,7 @@ namespace MyDailyLife
                 disposedValue = true;
             }
         }
+        abstract protected void ActivateTextures();
 
         public void SetInt(string name, int value)
         {
@@ -93,15 +98,30 @@ namespace MyDailyLife
             GL.Uniform1(uniformLocation, value);
         }
 
-        public void SetMatrix4(string name, ref Matrix4 value)
+        public void SetMatrix4(string name, Matrix4 value)
         {
             int location = GL.GetUniformLocation(Handle, name);
             GL.UniformMatrix4(location, true, ref value);
         }
 
+        public int GetAttribLocation(string name)
+        {
+            return GL.GetAttribLocation(Handle, name);
+        }
+
+        public void SetUniformBlockBinding(int blockIndex, int blockPoint)
+        {
+            GL.UniformBlockBinding(Handle, blockIndex, blockPoint);
+        }
+
+        public int GetUniformBlockIndex(string name)
+        {
+            return GL.GetUniformBlockIndex(Handle, name);
+        }
+
         ~Shader()
         {
-            if(!disposedValue)
+            if (!disposedValue)
             {
                 Console.WriteLine("GPU Resource leak, Resource not disposed correctly");
             }
