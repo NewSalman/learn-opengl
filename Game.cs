@@ -8,6 +8,9 @@ using MyDailyLife.Shaders;
 using MyDailyLife.Meshes;
 using MyDailyLife.Objects;
 using System.Runtime.InteropServices;
+using ErrorCode = OpenTK.Graphics.OpenGL4.ErrorCode;
+using System.Reflection.Metadata;
+using System.Xml.Linq;
 
 namespace MyDailyLife
 {
@@ -123,23 +126,6 @@ namespace MyDailyLife
 
             GL.ClearColor(new Color4(0.2f, 0.3f, 0.3f, 1.0f));
 
-            Ubo = GL.GenBuffer();
-            UboSize = 2 * (sizeof(float) * (4 * 4));
-
-            GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
-
-            // the calculation of matrix 4 by 4 is
-            // calculate the amount of data on a matrix 4 by 4
-            // 4 X 4 = 16, and the sizeof(float) is 4
-            // so sizeof(float) X 4 X 4
-
-            // the data will update on the loop
-            // because of that the buffer usage hint is dynamic draw
-            // cuz data changes every time
-            GL.BufferData(BufferTarget.UniformBuffer, UboSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
-
-
-
 
             //The function GL.VertexAttribPointer has quite a few parameters, so let's carefully walk through them:
 
@@ -198,32 +184,32 @@ namespace MyDailyLife
             //     ElementBufferObject = GL.GenBuffer();
             //     GL.BindBuffer(BufferTarget.ElementArrayBuffer, ElementBufferObject);
             //     GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
-            // }
-            LightningShader = new BasicColorShader("basic/basic.vert", "basic/basic.frag");
-            LightningSource = new Lightning(
-                vertecies: [
-                    new([-0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.9f)),
-                    new([0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
-                    new([0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
-                    new([-0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
+            //// }
+            //LightningShader = new BasicColorShader("basic/basic.vert", "basic/basic.frag");
+            //LightningSource = new Lightning(
+            //    vertecies: [
+            //        new([-0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.9f)),
+            //        new([0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
+            //        new([0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
+            //        new([-0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
 
-                    new([-0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
-                    new([0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
-                    new([0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
-                    new([-0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
-                ],
-                indices: [
-                        // back
-                        0, 1, 2,
-                        2, 3, 0,
+            //        new([-0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
+            //        new([0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
+            //        new([0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
+            //        new([-0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
+            //    ],
+            //    indices: [
+            //            // back
+            //            0, 1, 2,
+            //            2, 3, 0,
 
-                        //// front
-                        //4, 5, 6,
-                        //6, 7, 4,
-                    ],
-                shader: LightningShader,
-                [new(1.0f, 5.0f, 1.0f)]
-            );
+            //            //// front
+            //            //4, 5, 6,
+            //            //6, 7, 4,
+            //        ],
+            //    shader: LightningShader,
+            //    [new(1.0f, 5.0f, 1.0f)]
+            //);
 
             // Load Texture
             _texture = new("Assets/Textures/container.jpg");
@@ -304,34 +290,20 @@ namespace MyDailyLife
                 ]);
 
 
-            //{
-            //    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
-            //    GL.EnableVertexAttribArray(0);
-
-            //    // this for applying texture to object
-            //    //int texCoord = GL.GetAttribLocation(Shader.Handle, "aTexCoord");
-            //    GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof (float), 3 * sizeof(float));
-            //    GL.EnableVertexAttribArray(1);
-            //}
-
-            //Matrix4 rotation = Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(-90.0f));
-            //Matrix4 scale = Matrix4.CreateScale(0.5f, 0.5f, 0.5f);
-
-            //Matrix4 trans = rotation * scale;
-
-            //Shader.SetMatrix4("transform", ref trans);
-            //float totalDegres = (float)MathHelper.DegreesToRadians(0.0f);
-            //_model = Matrix4.CreateRotationX(totalDegres);
-            //Matrix4 view = Matrix4.CreateTranslation(0.0f, 0.0f, -3.0f);
-            //Matrix4 view = Matrix4.CreateTranslation(0.0f, 0.0f, 0.0f);
-            //Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), (float)args.Width / (float)args.Height, 0.1f, 100.0f);
-            //Matrix4 projection = Matrix4.CreateOrthographicOffCenter(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);
-            //Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), (float)args.Width / (float)args.Height, 0.1f, 100.0f);
 
 
 
-            GL.UseProgram(Shader.Handle);
-            GL.UseProgram(LightningShader.Handle);
+            int blockIndex = GL.GetUniformBlockIndex(Shader.Handle, "Matrices");
+            GL.UniformBlockBinding(Shader.Handle, blockIndex, 0);
+
+            Ubo = GL.GenBuffer();
+            UboSize = 2 * (sizeof(float) * (4 * 4));
+
+            GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
+            GL.BufferData(BufferTarget.UniformBuffer, UboSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+
+            GL.BindBufferRange(BufferRangeTarget.UniformBuffer, blockIndex, Ubo, 0, UboSize);
 
             _camera = new Camera(Vector3.UnitZ * 3, (float)(Size.X / Size.Y));
 
@@ -349,54 +321,43 @@ namespace MyDailyLife
 
             _time += 4.0 * args.Time;
 
-            // can be use anywhere, i'm just following the tutorial
-            //double elapsedTime = _stopwatch.Elapsed.Seconds;
-            //float greenValue = (float)Math.Sin(elapsedTime) / 2.0f + 0.5f;
-            //int vertexColorLocation = GL.GetUniformLocation(Shader.Handle, "ourColor");
-
-            //GL.Uniform4(vertexColorLocation, new Color4(0.0f, greenValue, 0.0f, 1.0f));
-
-            // draw outlines
-            //GL.DrawElements(PrimitiveType.LineStrip, indices.Length, DrawElementsType.UnsignedInt, 0);
-            //GL.DrawElements(PrimitiveType.Triangles, indices.Length, DrawElementsType.UnsignedInt, 0);
-
-            Matrix4 view = _camera.GetViewMatrix();
-            Matrix4 projection = _camera.GetProjectionMatrix();
-
-            // =========== try this later =============
-            //unsafe
-            //{
-            //    Matrix4* view = _camera.GetViewMatrix();
-            //    Matrix4* projection = _camera.GetProjectionMatrix();
-            //}
-
             //LightningSource.Render(_time);
+
+
+            float[,] projection = new float[4,4];
+            float[,] view = new float[4,4];
+
+            Matrix4 viewMat = _camera.GetViewMatrix();
+            Matrix4 projectionMat = _camera.GetProjectionMatrix();
+
+
+            for (int i = 0; i < 4; i++)
+            {
+                for(int j = 0; j < 4; j++)
+                {
+                    view[i, j] = viewMat[i, j];
+                    projection[i, j] = projectionMat[i, j];
+                }
+            }
+
+            //Shader.SetMatrix4("view", _camera.GetViewMatrix());
+            //Shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+
+            GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
+            GL.BufferSubData(BufferTarget.UniformBuffer, 0, sizeof(float) * 4 * 4, projection);
+            GL.BufferSubData(BufferTarget.UniformBuffer, (sizeof(float) * 4 * 4), sizeof(float) * 4 * 4, view);
+            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+
+
+            ErrorCode error = GL.GetError();
+            if (error != ErrorCode.NoError)
+            {
+                Console.WriteLine($"OpenGL Error: {error}");
+                // Handle the error appropriately (e.g., throw an exception)
+            }
 
             CubeMesh.Render(_time);
 
-            //GCHandle viewPtr = GCHandle.Alloc(view, GCHandleType.Pinned);
-            //GCHandle projectionPtr = GCHandle.Alloc(projection, GCHandleType.Pinned);
-
-            Shader.SetMatrix4("view", _camera.GetViewMatrix());
-            Shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
-
-            //Matrix4 viewProjection = view *= projection;
-
-            //// order like on the shaders
-            //// for view
-            //GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
-            //GL.BufferSubData(BufferTarget.UniformBuffer, 0, sizeof(float) * 4 * 4, viewPtr.AddrOfPinnedObject());
-            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
-            
-            //// for projection
-            //GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
-            //GL.BufferSubData(BufferTarget.UniformBuffer, 0, sizeof(float) * 4 * 4, projectionPtr.AddrOfPinnedObject());
-            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
-
-            //GL.BindBufferBase(BufferRangeTarget.UniformBuffer, Constants.CameraUniformBufferPoint, Ubo);
-
-
-            
             SwapBuffers();
         }
 
@@ -458,7 +419,7 @@ namespace MyDailyLife
             //GL.DeleteVertexArray(VertexArrayObject);
             GL.DeleteBuffer(Ubo);
 
-            LightningSource.Dispose();
+            //LightningSource.Dispose();
             CubeMesh.Dispose();
 
             GL.DeleteProgram(0);

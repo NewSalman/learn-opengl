@@ -45,9 +45,9 @@ namespace MyDailyLife.Meshes
 
             Initialize();
 
-            int uniformBlockIndex = Shader.GetUniformBlockIndex("Matrices");
+            //int uniformBlockIndex = Shader.GetUniformBlockIndex("Matrices");
 
-            Shader.SetUniformBlockBinding(uniformBlockIndex, Constants.CameraUniformBufferPoint);
+            //Shader.SetUniformBlockBinding(uniformBlockIndex, Constants.CameraUniformBufferPoint);
 
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
             GL.BindVertexArray(0);
