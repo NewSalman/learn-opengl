@@ -22,86 +22,13 @@ namespace MyDailyLife
     }
     public class Game(GameArgs args) : GameWindow(GameWindowSettings.Default, new NativeWindowSettings() { ClientSize = (args.Width, args.Height), Title = args.Title })
     {
-
-        private readonly float[] vertices =
-        {
-            // backface
-            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f,
-             0.5f, -0.5f, -0.5f,    1.0f, 0.0f,
-             0.5f,  0.5f, -0.5f,    1.0f, 1.0f,
-
-             0.5f,  0.5f, -0.5f,    1.0f, 1.0f,
-            -0.5f,  0.5f, -0.5f,    0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f,
-
-
-            // front face
-            -0.5f, -0.5f,  0.5f,    0.0f, 0.0f,
-             0.5f, -0.5f,  0.5f,    1.0f, 0.0f,
-             0.5f,  0.5f,  0.5f,    1.0f, 1.0f,
-             0.5f,  0.5f,  0.5f,    1.0f, 1.0f,
-            -0.5f,  0.5f,  0.5f,    0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,    0.0f, 0.0f,
-
-            // left face
-            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f,
-            -0.5f, -0.5f, 0.5f,     1.0f, 0.0f,
-            -0.5f, 0.5f, 0.5f,      1.0f, 1.0f,
-
-            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f,
-            -0.5f, 0.5f, -0.5f,     0.0f, 1.0f,
-            -0.5f, 0.5f, 0.5f,      1.0f, 1.0f,
-
-            //right face
-            0.5f, -0.5f, -0.5f,     1.0f, 0.0f,
-            0.5f, -0.5f, 0.5f,      0.0f, 0.0f,
-            0.5f, 0.5f, 0.5f,       0.0f, 1.0f,
-
-            0.5f, 0.5f, 0.5f,       0.0f, 1.0f,
-            0.5f, 0.5f, -0.5f,      1.0f, 1.0f,
-            0.5f, -0.5f, -0.5f,     1.0f, 0.0f,
-
-            // top face
-            -0.5f, 0.5f, 0.5f,      0.0f, 0.0f,
-            -0.5f, 0.5f, -0.5f,     0.0f, 1.0f,
-            0.5f, 0.5f, -0.5f,      1.0f, 1.0f,
-
-            0.5f, 0.5f, -0.5f,      1.0f, 1.0f,
-            0.5f, 0.5f, 0.5f,       1.0f, 0.0f,
-            -0.5f, 0.5f, 0.5f,      0.0f, 0.0f,
-
-            // bottom face
-            -0.5f, -0.5f, 0.5f,     0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f,
-            0.5f, -0.5f, -0.5f,     1.0f, 0.0f,
-
-            0.5f, -0.5f, -0.5f,     1.0f, 0.0f,
-            0.5f, -0.5f, 0.5f,      1.0f, 1.0f,
-            -0.5f, -0.5f, 0.5f,     0.0f, 1.0f
-
-        };
-
-       
-
-        private readonly uint[] indices =
-        {
-            // front
-            0, 2, 1,
-            1, 3, 0,
-        };
-
-        private Shader Shader;
-
-        private int VertexBufferObject;
-        private int VertexArrayObject;
-        private int ElementBufferObject;
-        private int MaxVertexAttrib = 0;
     
-        private Texture _texture;
-        private Texture _texture1;
+        //private Texture _texture;
+        //private Texture _texture1;
 
         private float speed = 0.1f;
         private double _time = 0.0;
+        private double _lastime = 0.0;
 
         private Camera _camera;
         private bool _firstMove = true;
@@ -109,10 +36,16 @@ namespace MyDailyLife
 
         private float _sensitivity = 0.2f;
 
+        //private Mesh LightningSource;
+        private Shader LightningShader;
+
+        private Mesh LightCubeMesh;
+        private Shader LightCubeShader;
+
+        //private Shader Shader;
         private Mesh CubeMesh;
 
-        private Mesh LightningSource;
-        private Shader LightningShader;
+        private Vector3 LightPos = new(1.2f, 1.0f, 2.0f);
 
         private int Ubo { get; set; }
         private int UboSize {  get; set; }
@@ -126,184 +59,173 @@ namespace MyDailyLife
 
             GL.ClearColor(new Color4(0.2f, 0.3f, 0.3f, 1.0f));
 
+            Vector3 sourceColor = new(1.0f, 1.0f, 1.0f);
 
-            //The function GL.VertexAttribPointer has quite a few parameters, so let's carefully walk through them:
+            uint[] ligthingIndices = [
+                        // back
+                        0, 1, 2,
+                        2, 3, 0,
 
-            // 1. The first parameter specifies which vertex attribute we want to configure.Remember that we specified
-            // the location of the position vertex attribute in the vertex shader with layout(location = 0).
-            // This sets the location of the vertex attribute to 0 and since we want to pass data to this vertex attribute,
-            // we pass in 0.
+                        // front
+                        4, 5, 6,
+                        6, 7, 4,
 
-            // 2. The next argument specifies the size of the vertex attribute. The vertex attribute is a vec3 so it is composed of 3 values.
+                        // left
+                        0, 4, 7,
+                        7, 3, 0,
 
-            // 3. The third argument specifies the type of the data, which is float(a vec* in GLSL consists of floating point values).
+                        // right
+                        1, 5, 6,
+                        6, 2, 1,
 
-            // 4. The next argument specifies if we want the data to be normalized. If we're inputting integer data types (int, byte)
-            // and we've set this to true, the integer data is normalized to 0(or - 1 for signed data) and 1 when converted to float.
-            // This is not relevant for us, so we'll leave this as false.
+                        // top
+                        3, 7, 6,
+                        6, 2, 3,
 
-            // 5. The fifth argument is known as the stride and tells us the space between consecutive vertex attributes.
-            // Since the next set of position data is located exactly 3 times the size of a float away we specify that value as the stride.
-            // Note that since we know that the array is tightly packed (there is no space between the next vertex attribute value)
-            // we could've also specified the stride as 0 to let OpenGL determine the stride (this only works when values are tightly packed).
-            // Whenever we have more vertex attributes we have to carefully define the spacing between each
-            // vertex attribute but we'll get to see more examples of that later on.
+                        0, 4, 5,
+                        5, 1, 0
 
-            // 1. The position data is stored as 32 - bit(4 byte) floating point values.
-            // 2. Each position is composed of 3 of those values.
-            // 3. There is no space (or other values) between each set of 3 values.The values are tightly packed in the array.
-            // 4. The first value in the data is at the beginning of the buffer.
+                    ];
 
-            // 6. The last parameter is the offset of where the position data begins in the buffer.
-            // Since the position data is at the start of the data array this value is just 0.
-            // We will explore this parameter in more detail later on
+            Vertex[] lightningVertecies = [
+                    new([-0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+                    new([0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+                    new([0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+                    new([-0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
 
-            // this for applying color to object
-            //GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
-            //GL.EnableVertexAttribArray(1);
-
-            //{ 
-            //     VertexArrayObject = GL.GenVertexArray();
-            //     GL.BindVertexArray(VertexArrayObject);
-
-            //     // Create a buffer
-            //     // if Vertex the type the buffer tis BufferTarget.ArrayBuffer
-            //     VertexBufferObject = GL.GenBuffer();
-
-            //     // Bind the current Vertex Buffer Object
-            //     GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
-
-            //     // Copies the previously define data vertex data into the buffer memory
-            //     GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
-
-            //     // chechk max vertex array attrib
-            //     // my gpu currently only support up to 16
-            //     //GL.GetInteger(GetPName.MaxVertexAttribs, out MaxVertexAttrib);
-            //     //Console.WriteLine("Max Vertex Array Attrib: {0}", MaxVertexAttrib);
-
-            //     ElementBufferObject = GL.GenBuffer();
-            //     GL.BindBuffer(BufferTarget.ElementArrayBuffer, ElementBufferObject);
-            //     GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
-            //// }
-            //LightningShader = new BasicColorShader("basic/basic.vert", "basic/basic.frag");
-            //LightningSource = new Lightning(
-            //    vertecies: [
-            //        new([-0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.9f)),
-            //        new([0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
-            //        new([0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
-            //        new([-0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
-
-            //        new([-0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
-            //        new([0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
-            //        new([0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
-            //        new([-0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: new Vector3(0.9f, 0.5f, 0.4f)),
-            //    ],
-            //    indices: [
-            //            // back
-            //            0, 1, 2,
-            //            2, 3, 0,
-
-            //            //// front
-            //            //4, 5, 6,
-            //            //6, 7, 4,
-            //        ],
-            //    shader: LightningShader,
-            //    [new(1.0f, 5.0f, 1.0f)]
-            //);
-
-            // Load Texture
-            _texture = new("Assets/Textures/container.jpg");
-
-            _texture1 = new("Assets/Textures/awesomeface.png");
+                    new([-0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+                    new([0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+                    new([0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+                    new([-0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+            ];
 
 
-            Shader = new TextureShader("shader.vert", "shader.frag", [_texture, _texture1]);
+            Vertex[] cubeVertecies = [
+                 // rear face
+                    new([-0.5f, -0.5f, -0.5f], [.0f, 0.0f, -1.0f], [0.0f, 0.0f]),
+                    new([0.5f, -0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [1.0f, 0.0f]),
+                    new([0.5f, 0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [1.0f, 1.0f]),
 
-            CubeMesh = new Cube([
-                    // rear face
-                    new([-0.5f, -0.5f, -0.5f], [0f, 0f, 0f], [0.0f, 0.0f]),
-                    new([0.5f, -0.5f, -0.5f], [0f, 0f, 0f], [1.0f, 0.0f]),
-                    new([0.5f, 0.5f, -0.5f], [0f, 0f, 0f], [1.0f, 1.0f]),
-
-                    new([0.5f, 0.5f, -0.5f], [0f, 0f, 0f], [1.0f, 1.0f]),
-                    new([-0.5f, 0.5f, -0.5f], [0f, 0f, 0f], [0.0f, 1.0f]),
-                    new([-0.5f, -0.5f, -0.5f], [0f, 0f, 0f], [0.0f, 0.0f]),
+                    new([0.5f, 0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [1.0f, 1.0f]),
+                    new([-0.5f, 0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [0.0f, 1.0f]),
+                    new([-0.5f, -0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [0.0f, 0.0f]),
 
 
                     // front face
-                    new([-0.5f, -0.5f, 0.5f], [0f, 0f, 0f], [0.0f, 0.0f]),
-                    new([0.5f, -0.5f, 0.5f], [0f, 0f, 0f], [1.0f, 0.0f]),
-                    new([0.5f, 0.5f, 0.5f], [0f, 0f, 0f], [1.0f, 1.0f]),
+                    new([-0.5f, -0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [0.0f, 0.0f]),
+                    new([0.5f, -0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [1.0f, 0.0f]),
+                    new([0.5f, 0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [1.0f, 1.0f]),
 
-                    new([0.5f, 0.5f, 0.5f], [0f, 0f, 0f], [1.0f, 1.0f]),
-                    new([-0.5f, 0.5f, 0.5f], [0f, 0f, 0f], [0.0f, 1.0f]),
-                    new([-0.5f, -0.5f, 0.5f], [0f, 0f, 0f], [0.0f, 0.0f]),
+                    new([0.5f, 0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [1.0f, 1.0f]),
+                    new([-0.5f, 0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [0.0f, 1.0f]),
+                    new([-0.5f, -0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [0.0f, 0.0f]),
 
 
                     // left face
-                    new([-0.5f, -0.5f, -0.5f], [0f, 0f, 0f], [0.0f, 0.0f]),
-                    new([-0.5f, -0.5f, 0.5f], [0f, 0f, 0f], [1.0f, 0.0f]),
-                    new([-0.5f, 0.5f, 0.5f], [0f, 0f, 0f], [1.0f, 1.0f]),
+                    new([-0.5f, -0.5f, -0.5f], [-1.0f, 0.0f, 0.0f], [0.0f, 0.0f]),
+                    new([-0.5f, -0.5f, 0.5f], [-1.0f, 0.0f, 0.0f], [1.0f, 0.0f]),
+                    new([-0.5f, 0.5f, 0.5f], [-1.0f, 0.0f, 0.0f], [1.0f, 1.0f]),
 
-                    new([-0.5f, 0.5f, 0.5f], [0f, 0f, 0f], [1.0f, 1.0f]),
-                    new([-0.5f, 0.5f, -0.5f], [0f, 0f, 0f], [0.0f, 1.0f]),
-                    new([-0.5f, -0.5f, -0.5f], [0f, 0f, 0f], [0.0f, 0.0f]),
+                    new([-0.5f, 0.5f, 0.5f], [-1.0f, 0.0f, 0.0f], [1.0f, 1.0f]),
+                    new([-0.5f, 0.5f, -0.5f], [-1.0f, 0.0f, 0.0f], [0.0f, 1.0f]),
+                    new([-0.5f, -0.5f, -0.5f], [-1.0f, 0.0f, 0.0f], [0.0f, 0.0f]),
                 
                     // right face
-                    new([0.5f, -0.5f, 0.5f], [0f, 0f, 0f], [0.0f, 0.0f]),
-                    new([0.5f, -0.5f, -0.5f], [0f, 0f, 0f], [1.0f, 0.0f]),
-                    new([0.5f, 0.5f, 0.5f], [0f, 0f, 0f], [0.0f, 1.0f]),
+                    new([0.5f, -0.5f, 0.5f], [1.0f, 0.0f, 0.0f], [0.0f, 0.0f]),
+                    new([0.5f, -0.5f, -0.5f], [1.0f, 0.0f, 0.0f], [1.0f, 0.0f]),
+                    new([0.5f, 0.5f, 0.5f], [1.0f, 0.0f, 0.0f], [0.0f, 1.0f]),
 
-                    new([0.5f, 0.5f, 0.5f], [0f, 0f, 0f], [0.0f, 1.0f]),
-                    new([0.5f, 0.5f, -0.5f], [0f, 0f, 0f], [1.0f, 1.0f]),
-                    new([0.5f, -0.5f, -0.5f], [0f, 0f, 0f], [1.0f, 0.0f]),
+                    new([0.5f, 0.5f, 0.5f], [1.0f, 0.0f, 0.0f], [0.0f, 1.0f]),
+                    new([0.5f, 0.5f, -0.5f], [1.0f, 0.0f, 0.0f], [1.0f, 1.0f]),
+                    new([0.5f, -0.5f, -0.5f], [1.0f, 0.0f, 0.0f], [1.0f, 0.0f]),
 
                     // top face
-                    new([-0.5f, 0.5f, 0.5f], [0f, 0f, 0f], [0.0f, 0.0f]),
-                    new([0.5f, 0.5f, 0.5f], [0f, 0f, 0f], [1.0f, 0.0f]),
-                    new([0.5f, 0.5f, -0.5f], [0f, 0f, 0f], [1.0f, 1.0f]),
+                    new([-0.5f, 0.5f, 0.5f], [0.0f, 1.0f, 0.0f], [0.0f, 0.0f]),
+                    new([0.5f, 0.5f, 0.5f], [0.0f, 1.0f, 0.0f], [1.0f, 0.0f]),
+                    new([0.5f, 0.5f, -0.5f], [0.0f, 1.0f, 0.0f], [1.0f, 1.0f]),
 
-                    new([0.5f, 0.5f, -0.5f], [0f, 0f, 0f], [1.0f, 1.0f]),
-                    new([-0.5f, 0.5f, -0.5f], [0f, 0f, 0f], [0.0f, 1.0f]),
-                    new([-0.5f, 0.5f, 0.5f], [0f, 0f, 0f], [0.0f, 0.0f]),
+                    new([0.5f, 0.5f, -0.5f], [0.0f, 1.0f, 0.0f], [1.0f, 1.0f]),
+                    new([-0.5f, 0.5f, -0.5f], [0.0f, 1.0f, 0.0f], [0.0f, 1.0f]),
+                    new([-0.5f, 0.5f, 0.5f], [0.0f, 1.0f, 0.0f], [0.0f, 0.0f]),
                 
-                    // bottm face
-                    new([-0.5f, -0.5f, 0.5f], [0f, 0f, 0f], [0.0f, 0.0f]),
-                    new([0.5f, -0.5f, 0.5f], [0f, 0f, 0f], [1.0f, 0.0f]),
-                    new([0.5f, -0.5f, -0.5f], [0f, 0f, 0f], [1.0f, 1.0f]),
+                    // bottom face
+                    new([-0.5f, -0.5f, 0.5f], [0.0f, -1.0f, 0.0f], [0.0f, 0.0f]),
+                    new([0.5f, -0.5f, 0.5f], [0.0f, -1.0f, 0.0f], [1.0f, 0.0f]),
+                    new([0.5f, -0.5f, -0.5f], [0.0f, -1.0f, 0.0f], [1.0f, 1.0f]),
 
-                    new([0.5f, -0.5f, -0.5f], [0f, 0f, 0f], [1.0f, 1.0f]),
-                    new([-0.5f, -0.5f, -0.5f], [0f, 0f, 0f], [0.0f, 1.0f]),
-                    new([-0.5f, -0.5f, 0.5f], [0f, 0f, 0f], [0.0f, 0.0f]),
-                ], indices, Shader,
-                [
-                    new(0.0f, 0.0f, 0.0f),
-                    new(2.0f, 5.0f, -15.0f),
-                    new(-1.5f, -2.2f, -2.5f),
-                    new(-3.8f, -2.0f, -12.5f),
-                    new(2.4f, -0.4f, -3.5f),
-                    new(-1.7f, 3.0f, -7.5f),
-                    new(1.3f, -2.0f, -2.5f),
-                    new(1.5f, 2.0f, -2.5f),
-                    new(1.5f, 0.2f, -1.5f),
-                    new(-1.3f, 1.0f, -1.5f)
-                ]);
+                    new([0.5f, -0.5f, -0.5f], [0.0f, -1.0f, 0.0f], [1.0f, 1.0f]),
+                    new([-0.5f, -0.5f, -0.5f], [0.0f, -1.0f, 0.0f], [0.0f, 1.0f]),
+                    new([-0.5f, -0.5f, 0.5f], [0.0f, -1.0f, 0.0f], [0.0f, 0.0f]),
+            ];
+
+            uint[] cubeindices =
+            {
+                // front
+                0, 2, 1,
+                1, 3, 0,
+            };
 
 
 
+            // translate the light position and scale it down
+
+            Matrix4 lightCubeModel = Matrix4.Identity;
+
+            lightCubeModel = Matrix4.CreateTranslation(LightPos) * lightCubeModel;
+
+            lightCubeModel = Matrix4.CreateScale(0.2f) * lightCubeModel;
+
+            LightCubeShader = new BasicColorShader("lightning/light_cube.vert", "lightning/light_cube.frag");
+            LightCubeMesh = new Cube(
+                cubeVertecies,
+                cubeindices,
+                LightCubeShader,
+                models: [lightCubeModel]
+            );
 
 
-            int blockIndex = GL.GetUniformBlockIndex(Shader.Handle, "Matrices");
-            GL.UniformBlockBinding(Shader.Handle, blockIndex, 0);
 
-            Ubo = GL.GenBuffer();
-            UboSize = 2 * (sizeof(float) * (4 * 4));
 
-            GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
-            GL.BufferData(BufferTarget.UniformBuffer, UboSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
-            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+            //LightningSource = new CubeEBO(
+            //    vertecies: lightningVertecies,
+            //    indices: ligthingIndices,
+            //    shader: LightningShader,
+            //    [new(0.0f, 0.0f, 0.0f)]
+            //);
 
-            GL.BindBufferRange(BufferRangeTarget.UniformBuffer, blockIndex, Ubo, 0, UboSize);
+            //// Load Texture
+            //_texture = new("Assets/Textures/container.jpg");
+
+            //_texture1 = new("Assets/Textures/awesomeface.png");
+
+
+            //Shader = new TextureShader("shader.vert", "shader.frag", [_texture, _texture1]);
+
+            //Matrix4 LightModel = Matrix4.CreateRotationY(totalDegres);
+            //Matrix4 translate = Matrix4.CreateTranslation(Positions[i]);
+
+            //LightModel *= translate;
+
+            LightningShader = new BasicColorShader("basic/basic.vert", "basic/basic.frag");
+            CubeMesh = new Cube(cubeVertecies, cubeindices, LightningShader, [Matrix4.Identity]);
+
+            LightningShader.SetVec3(["lightPos", "objectColor", "lightColor"], [LightPos, new(1.0f, 0.5f, 0.31f), new(1.0f, 1.0f, 1.0f)]);
+
+
+
+            /// ============================ try UBO again later ===================================
+
+            //int blockIndex = GL.GetUniformBlockIndex(Shader.Handle, "Matrices");
+            //GL.UniformBlockBinding(Shader.Handle, blockIndex, 0);
+
+            //Ubo = GL.GenBuffer();
+            //UboSize = 2 * (sizeof(float) * (4 * 4));
+
+            //GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
+            //GL.BufferData(BufferTarget.UniformBuffer, UboSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+
+            //GL.BindBufferRange(BufferRangeTarget.UniformBuffer, blockIndex, Ubo, 0, UboSize);
 
             _camera = new Camera(Vector3.UnitZ * 3, (float)(Size.X / Size.Y));
 
@@ -319,35 +241,51 @@ namespace MyDailyLife
             base.OnRenderFrame(args);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
+
+            _lastime = _time;
             _time += 4.0 * args.Time;
+            double deltaTime = _time - _lastime;
 
-            //LightningSource.Render(_time);
+            Matrix4 viewMatrix = _camera.GetViewMatrix();
+            Matrix4 projectionMatrix = _camera.GetProjectionMatrix();
+
+            LightningShader.SetMatrix4("view", viewMatrix);
+            LightningShader.SetMatrix4("projection", projectionMatrix);
+
+            CubeMesh.Render(deltaTime);
+            //LightningSource.Render(deltaTime);
+
+            /// ============================ try UBO again later ===================================
+
+            //float[,] projection = new float[4, 4];
+            //float[,] view = new float[4, 4];
+
+            //Matrix4 viewMat = _camera.GetViewMatrix();
+            //Matrix4 projectionMat = _camera.GetProjectionMatrix();
 
 
-            float[,] projection = new float[4,4];
-            float[,] view = new float[4,4];
+            //for (int i = 0; i < 4; i++)
+            //{
+            //    for (int j = 0; j < 4; j++)
+            //    {
+            //        view[i, j] = viewMat[i, j];
+            //        projection[i, j] = projectionMat[i, j];
+            //    }
+            //}
 
-            Matrix4 viewMat = _camera.GetViewMatrix();
-            Matrix4 projectionMat = _camera.GetProjectionMatrix();
+            //GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
+            //GL.BufferSubData(BufferTarget.UniformBuffer, 0, sizeof(float) * 4 * 4, projection);
+            //GL.BufferSubData(BufferTarget.UniformBuffer, (sizeof(float) * 4 * 4), sizeof(float) * 4 * 4, view);
+            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
 
 
-            for (int i = 0; i < 4; i++)
-            {
-                for(int j = 0; j < 4; j++)
-                {
-                    view[i, j] = viewMat[i, j];
-                    projection[i, j] = projectionMat[i, j];
-                }
-            }
 
-            //Shader.SetMatrix4("view", _camera.GetViewMatrix());
-            //Shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
 
-            GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
-            GL.BufferSubData(BufferTarget.UniformBuffer, 0, sizeof(float) * 4 * 4, projection);
-            GL.BufferSubData(BufferTarget.UniformBuffer, (sizeof(float) * 4 * 4), sizeof(float) * 4 * 4, view);
-            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
 
+            LightCubeShader.SetMatrix4("view", viewMatrix);
+            LightCubeShader.SetMatrix4("projection", projectionMatrix);
+
+            LightCubeMesh.Render(deltaTime);
 
             ErrorCode error = GL.GetError();
             if (error != ErrorCode.NoError)
@@ -356,7 +294,7 @@ namespace MyDailyLife
                 // Handle the error appropriately (e.g., throw an exception)
             }
 
-            CubeMesh.Render(_time);
+
 
             SwapBuffers();
         }
@@ -417,14 +355,23 @@ namespace MyDailyLife
             //GL.DeleteBuffer(VertexBufferObject);
             //GL.DeleteBuffer(ElementBufferObject);
             //GL.DeleteVertexArray(VertexArrayObject);
-            GL.DeleteBuffer(Ubo);
+            //GL.DeleteBuffer(Ubo);
 
             //LightningSource.Dispose();
-            CubeMesh.Dispose();
+            LightCubeMesh.Dispose();
+            //CubeMesh.Dispose();
 
             GL.DeleteProgram(0);
 
             base.OnUnload();
+        }
+
+        protected override void OnResize(ResizeEventArgs e)
+        {
+            base.OnResize(e);
+
+            GL.Viewport(0, 0, Size.X, Size.Y);
+            _camera.AspectRatio = Size.X / (float)Size.Y;
         }
 
         private void ListenInputKey(float time)

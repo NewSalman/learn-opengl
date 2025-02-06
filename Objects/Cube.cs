@@ -13,22 +13,31 @@ namespace MyDailyLife.Objects
 {
     public class Cube : Mesh
     {
-        public Cube(Vertex[] vertecies, uint[] indices, Shader shader, Vector3[] position) : base(vertecies, indices, shader, position)
+        public Cube(Vertex[] vertecies, uint[] indices, Shader shader, Matrix4[] models) : base(vertecies, indices, shader, models)
         {
+        }
+
+        protected override void BeforeDraw(double time)
+        {
+            base.BeforeDraw(time);
+
+            //float totalDegres = (float)MathHelper.DegreesToRadians(time);
+
+            // =================== need to be inside loop ======================= fix it!!!
+            //Matrix4 model = Matrix4.CreateRotationY(totalDegres);
+            //Matrix4 translate = Matrix4.CreateTranslation(Positions[i]);
+
+            //model *= translate;
+
         }
 
         protected override void Draw(double time)
         {
-            float totalDegres = (float)MathHelper.DegreesToRadians(time);
 
-            for (int i = 0; i < Positions.Length; i++)
+            for (int i = 0; i < Models.Length; i++)
             {
-                Matrix4 model = Matrix4.CreateRotationY(totalDegres);
-                Matrix4 translate = Matrix4.CreateTranslation(Positions[i]);
-
-                model *= translate;
-
-                Shader.SetMatrix4("model", model);
+                // or i don't need that before draw, i just can modify on loop, but it's makes that main loop messy
+                Shader.SetMatrix4("model", Models[i]);
 
                 GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
 
@@ -57,11 +66,13 @@ namespace MyDailyLife.Objects
             GL.EnableVertexAttribArray(1);
 
             // texture coordinate
-            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
-            GL.EnableVertexAttribArray(2);
+            //GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
+            //GL.EnableVertexAttribArray(2);
 
-            Shader.SetInt("texture0", 0);
-            Shader.SetInt("texture1", 1);
+
+            /// TODO : ====================== handle this on the shader ==========================
+            //Shader.SetInt("texture0", 0);
+            //Shader.SetInt("texture1", 1);
 
         }
     }

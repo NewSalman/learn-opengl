@@ -21,6 +21,8 @@ namespace MyDailyLife.Shaders
         private bool disposedValue = false;
         //private int SharedUniformBlockIndex;
 
+        private Dictionary<string, int> _uniformLocations = [];
+
         public Shader(string vertexPath, string fragmentPath)
         {
             string vertexShaderSource = File.ReadAllText($"Assets/Shaders/{vertexPath}");
@@ -71,6 +73,18 @@ namespace MyDailyLife.Shaders
             GL.DetachShader(Handle, FragmentShader);
             GL.DeleteShader(VertexShader);
             GL.DeleteShader(FragmentShader);
+
+
+            GL.GetProgram(Handle, GetProgramParameterName.ActiveUniforms, out int numOfUniforms);
+
+            for (int i = 0; i < numOfUniforms; i++)
+            {
+                string key = GL.GetActiveUniform(Handle, i, out _, out _);
+
+                int location = GL.GetUniformLocation(Handle, key);
+
+                _uniformLocations.Add(key, location);
+            }
         }
 
 
@@ -93,15 +107,31 @@ namespace MyDailyLife.Shaders
 
         public void SetInt(string name, int value)
         {
-            int uniformLocation = GL.GetUniformLocation(Handle, name);
-
-            GL.Uniform1(uniformLocation, value);
+            GL.UseProgram(Handle);
+            GL.Uniform1(_uniformLocations[name], value);
         }
 
         public void SetMatrix4(string name, Matrix4 value)
         {
-            int location = GL.GetUniformLocation(Handle, name);
-            GL.UniformMatrix4(location, true, ref value);
+            GL.UseProgram(Handle);
+            GL.UniformMatrix4(_uniformLocations[name], true, ref value);
+        }
+
+        public void SetVec3(string name, Vector3 value)
+        {
+            GL.UseProgram(Handle);
+            GL.Uniform3(_uniformLocations[name], value);
+        }
+
+        public void SetVec3(string[] names, Vector3[] values)
+        {
+            if (names.Length != values.Length) throw new Exception("key and value must be the same length");
+
+            GL.UseProgram(Handle);
+            for (int i = 0; i < names.Length; i++)
+            {
+                GL.Uniform3(_uniformLocations[names[i]], values[i]);
+            }
         }
 
         public int GetAttribLocation(string name)

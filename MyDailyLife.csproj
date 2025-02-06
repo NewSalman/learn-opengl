@@ -18,4 +18,8 @@
 	<ItemGroup>
 		<None Update="$(SolutionDir)Assets\**" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Assets\Shaders\lightning\" />
+	</ItemGroup>
 </Project>

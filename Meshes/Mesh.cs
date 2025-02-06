@@ -23,12 +23,14 @@ namespace MyDailyLife.Meshes
         public Shader Shader { get; set; }
         protected Vertex[] Vertecies {  get; set; }
         protected uint[] Indices { get; set; }
-        protected Vector3[] Positions { get; set; }
+        //protected Vector3[] Positions { get; set; }
         protected int Vao { get; set; }
         protected int Vbo { get; set; }
         protected int Ebo { get; set; }
 
-        public Mesh(Vertex[] vertecies, uint[] indices, Shader shader, Vector3[] position)
+        public Matrix4[] Models { get; set; }
+
+        public Mesh(Vertex[] vertecies, uint[] indices, Shader shader, Matrix4[] models)
         {
             Indices = indices;
 
@@ -36,7 +38,7 @@ namespace MyDailyLife.Meshes
 
             Shader = shader;
 
-            Positions = position;
+            Models = models;
 
             Vao = GL.GenVertexArray();
             GL.BindVertexArray(Vao);
@@ -45,11 +47,14 @@ namespace MyDailyLife.Meshes
 
             Initialize();
 
+
+            /// ============================ try UBO again later ===================================
+
             //int uniformBlockIndex = Shader.GetUniformBlockIndex("Matrices");
 
             //Shader.SetUniformBlockBinding(uniformBlockIndex, Constants.CameraUniformBufferPoint);
 
-            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
             GL.BindVertexArray(0);
         }
 
@@ -67,6 +72,10 @@ namespace MyDailyLife.Meshes
             }
 
             return result;
+        }
+        protected virtual void BeforeDraw(double time) 
+        {
+            
         }
 
         abstract protected void Draw(double time);

@@ -11,9 +11,9 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MyDailyLife.Objects
 {
-    public class Lightning : Mesh
+    public class CubeEBO : Mesh
     {
-        public Lightning(Vertex[] vertecies, uint[] indices, Shader shader, Vector3[] position) : base(vertecies, indices, shader, position)
+        public CubeEBO(Vertex[] vertecies, uint[] indices, Shader shader, Matrix4[] models) : base(vertecies, indices, shader, models)
         {
         }
 
@@ -47,13 +47,17 @@ namespace MyDailyLife.Objects
         
         protected override void Draw(double time)
         {
-            Matrix4 model = Matrix4.CreateRotationY(0f);
-            Matrix4 translate = Matrix4.CreateTranslation(Positions[0]);
+            for (int i = 0; i < Models.Length; i++) 
+            {
+                //Matrix4 model = Matrix4.Identity;
+                //model *= Matrix4.CreateScale(1f);
+                //Matrix4 translate = Matrix4.CreateTranslation();
 
-            model *= translate;
+                //model *= translate;
 
-            Shader.SetMatrix4("model", model);
-            GL.DrawElements(PrimitiveType.Triangles, Indices.Length, DrawElementsType.UnsignedInt, 0);
+                Shader.SetMatrix4("model", Models[i]);
+                GL.DrawElements(PrimitiveType.Triangles, Indices.Length, DrawElementsType.UnsignedInt, 0);
+            }
         }
 
     }
