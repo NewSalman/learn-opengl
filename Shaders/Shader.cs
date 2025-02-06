@@ -117,20 +117,34 @@ namespace MyDailyLife.Shaders
             GL.UniformMatrix4(_uniformLocations[name], true, ref value);
         }
 
+        public void SetMatrix4(Dictionary<string, Matrix4> uniforms)
+        {
+            if (uniforms.Count <= 0) return;
+
+            GL.UseProgram(Handle);
+            foreach(KeyValuePair<string, Matrix4> uniform in uniforms)
+            {
+                Matrix4 value = uniform.Value;
+
+                GL.UniformMatrix4(_uniformLocations[uniform.Key], true , ref value);
+            }
+        }
+
         public void SetVec3(string name, Vector3 value)
         {
             GL.UseProgram(Handle);
             GL.Uniform3(_uniformLocations[name], value);
         }
 
-        public void SetVec3(string[] names, Vector3[] values)
+        public void SetVec3(Dictionary<string, Vector3> uniforms)
         {
-            if (names.Length != values.Length) throw new Exception("key and value must be the same length");
+            if (uniforms.Count <= 0) return;
 
             GL.UseProgram(Handle);
-            for (int i = 0; i < names.Length; i++)
+
+            foreach (KeyValuePair<string, Vector3> uniform in uniforms)
             {
-                GL.Uniform3(_uniformLocations[names[i]], values[i]);
+                GL.Uniform3(_uniformLocations[uniform.Key], uniform.Value);
             }
         }
 

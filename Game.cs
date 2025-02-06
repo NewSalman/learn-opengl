@@ -50,12 +50,40 @@ namespace MyDailyLife
         private int Ubo { get; set; }
         private int UboSize {  get; set; }
 
+        private float LightAngle = 0.0f;
+
+        private Dictionary<string, Matrix4> WorldProjection = new();
+
+        private Dictionary<string, Vector3> LightningValue = new();
+
+
+        private Vector3 UpdateLightPosition()
+        {
+            LightAngle += ((float)_time / 1000) * 0.2f;
+
+            if(LightAngle > 360.0f)
+            {
+                LightAngle -= 360.0f;
+            }
+
+            float orbitRadius = 3.0f;
+
+            float radius = MathHelper.DegreesToRadians(LightAngle);
+
+            float lightX = orbitRadius * (float)MathHelper.Cos(radius);
+            float lightZ = orbitRadius * (float)MathHelper.Sin(radius);
+
+            float lightY = 1.0f;
+
+            return new Vector3(lightX, lightY, lightZ);
+
+        }
+
 
         protected override void OnLoad()
         {
             base.OnLoad();
-
-            if (!Stopwatch.IsHighResolution) throw new Exception("Not using high resolution timer");
+            
 
             GL.ClearColor(new Color4(0.2f, 0.3f, 0.3f, 1.0f));
 
@@ -209,7 +237,12 @@ namespace MyDailyLife
             LightningShader = new BasicColorShader("basic/basic.vert", "basic/basic.frag");
             CubeMesh = new Cube(cubeVertecies, cubeindices, LightningShader, [Matrix4.Identity]);
 
-            LightningShader.SetVec3(["lightPos", "objectColor", "lightColor"], [LightPos, new(1.0f, 0.5f, 0.31f), new(1.0f, 1.0f, 1.0f)]);
+            LightningValue.Add("lightPos", UpdateLightPosition());
+            LightningValue.Add("objectColor", new(1.0f, 0.5f, 0.31f));
+            LightningValue.Add("lightColor", new(1.0f, 1.0f, 1.0f));
+
+            LightningShader.SetVec3(LightningValue);
+
 
 
 
@@ -228,6 +261,10 @@ namespace MyDailyLife
             //GL.BindBufferRange(BufferRangeTarget.UniformBuffer, blockIndex, Ubo, 0, UboSize);
 
             _camera = new Camera(Vector3.UnitZ * 3, (float)(Size.X / Size.Y));
+
+
+            WorldProjection.Add("view", _camera.GetViewMatrix());
+            WorldProjection.Add("projection", _camera.GetProjectionMatrix());
 
             GL.Enable(EnableCap.DepthTest);
 
@@ -249,8 +286,15 @@ namespace MyDailyLife
             Matrix4 viewMatrix = _camera.GetViewMatrix();
             Matrix4 projectionMatrix = _camera.GetProjectionMatrix();
 
-            LightningShader.SetMatrix4("view", viewMatrix);
-            LightningShader.SetMatrix4("projection", projectionMatrix);
+            Vector3 lightPosition = UpdateLightPosition();
+
+            WorldProjection["view"] = viewMatrix;
+            WorldProjection["projection"] = projectionMatrix;
+
+            LightningShader.SetVec3("lightPos", lightPosition);
+
+            //LightningShader.SetVec3(LightningValue);
+            LightningShader.SetMatrix4(WorldProjection);
 
             CubeMesh.Render(deltaTime);
             //LightningSource.Render(deltaTime);
@@ -280,12 +324,17 @@ namespace MyDailyLife
 
 
 
+            Matrix4 lightPosModel = Matrix4.Identity;
+            lightPosModel = Matrix4.CreateTranslation(UpdateLightPosition()) * lightPosModel;
+            lightPosModel = Matrix4.CreateScale(0.2f) * lightPosModel;
 
-
-            LightCubeShader.SetMatrix4("view", viewMatrix);
-            LightCubeShader.SetMatrix4("projection", projectionMatrix);
+            LightCubeShader.SetMatrix4(WorldProjection);
+            LightCubeShader.SetMatrix4("model", lightPosModel);
+            
 
             LightCubeMesh.Render(deltaTime);
+
+
 
             ErrorCode error = GL.GetError();
             if (error != ErrorCode.NoError)

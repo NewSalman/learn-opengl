@@ -37,7 +37,6 @@ namespace MyDailyLife.Objects
             for (int i = 0; i < Models.Length; i++)
             {
                 // or i don't need that before draw, i just can modify on loop, but it's makes that main loop messy
-                Shader.SetMatrix4("model", Models[i]);
 
                 GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
 
@@ -64,6 +63,11 @@ namespace MyDailyLife.Objects
             //normals
             GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
             GL.EnableVertexAttribArray(1);
+
+            for (int i = 0; i < Models.Length; i++)
+            {
+                Shader.SetMatrix4("model", Models[i]);
+            }
 
             // texture coordinate
             //GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
