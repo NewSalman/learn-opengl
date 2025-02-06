@@ -26,15 +26,16 @@ namespace MyDailyLife
         //private Texture _texture;
         //private Texture _texture1;
 
-        private float speed = 0.1f;
+        private float speed = 1.0f;
         private double _time = 0.0;
         private double _lastime = 0.0;
+        private double _deltaTime = 0.0;
 
         private Camera _camera;
         private bool _firstMove = true;
         private Vector2 _lastPosition;
 
-        private float _sensitivity = 0.2f;
+        private float _sensitivity = 0.5f;
 
         //private Mesh LightningSource;
         private Shader LightningShader;
@@ -56,17 +57,19 @@ namespace MyDailyLife
 
         private Dictionary<string, Vector3> LightningValue = new();
 
+        private Matrix4 LightCubeModel;
+
 
         private Vector3 UpdateLightPosition()
         {
-            LightAngle += ((float)_time / 1000) * 0.2f;
+            LightAngle += 4.0f * (float)_deltaTime * speed;
 
             if(LightAngle > 360.0f)
             {
                 LightAngle -= 360.0f;
             }
 
-            float orbitRadius = 3.0f;
+            float orbitRadius = 2.0f;
 
             float radius = MathHelper.DegreesToRadians(LightAngle);
 
@@ -197,18 +200,18 @@ namespace MyDailyLife
 
             // translate the light position and scale it down
 
-            Matrix4 lightCubeModel = Matrix4.Identity;
+            LightCubeModel = Matrix4.Identity;
 
-            lightCubeModel = Matrix4.CreateTranslation(LightPos) * lightCubeModel;
+            LightCubeModel = Matrix4.CreateTranslation(LightPos) * LightCubeModel;
 
-            lightCubeModel = Matrix4.CreateScale(0.2f) * lightCubeModel;
+            LightCubeModel = Matrix4.CreateScale(0.2f) * LightCubeModel;
 
             LightCubeShader = new BasicColorShader("lightning/light_cube.vert", "lightning/light_cube.frag");
             LightCubeMesh = new Cube(
                 cubeVertecies,
                 cubeindices,
                 LightCubeShader,
-                models: [lightCubeModel]
+                models: [LightCubeModel]
             );
 
 
@@ -280,8 +283,8 @@ namespace MyDailyLife
 
 
             _lastime = _time;
-            _time += 4.0 * args.Time;
-            double deltaTime = _time - _lastime;
+            _time += args.Time;
+            _deltaTime = _time - _lastime;
 
             Matrix4 viewMatrix = _camera.GetViewMatrix();
             Matrix4 projectionMatrix = _camera.GetProjectionMatrix();
@@ -292,11 +295,12 @@ namespace MyDailyLife
             WorldProjection["projection"] = projectionMatrix;
 
             LightningShader.SetVec3("lightPos", lightPosition);
+            LightningShader.SetVec3("viewPos", _camera.Position);
 
             //LightningShader.SetVec3(LightningValue);
             LightningShader.SetMatrix4(WorldProjection);
 
-            CubeMesh.Render(deltaTime);
+            CubeMesh.Render(_deltaTime);
             //LightningSource.Render(deltaTime);
 
             /// ============================ try UBO again later ===================================
@@ -325,14 +329,14 @@ namespace MyDailyLife
 
 
             Matrix4 lightPosModel = Matrix4.Identity;
-            lightPosModel = Matrix4.CreateTranslation(UpdateLightPosition()) * lightPosModel;
+            lightPosModel = Matrix4.CreateTranslation(lightPosition) * lightPosModel;
             lightPosModel = Matrix4.CreateScale(0.2f) * lightPosModel;
 
             LightCubeShader.SetMatrix4(WorldProjection);
             LightCubeShader.SetMatrix4("model", lightPosModel);
             
 
-            LightCubeMesh.Render(deltaTime);
+            LightCubeMesh.Render(_deltaTime);
 
 
 
@@ -352,7 +356,7 @@ namespace MyDailyLife
         {
             base.OnUpdateFrame(args);
 
-            ListenInputKey((float)_time / 1000);
+            ListenInputKey((float)_deltaTime);
             ListenMouseEvent();
         }
 
