@@ -117,6 +117,12 @@ namespace MyDailyLife.Shaders
             GL.UniformMatrix4(_uniformLocations[name], true, ref value);
         }
 
+        public void SetFloat(string name, float value)
+        {
+            GL.UseProgram(Handle);
+            GL.Uniform1(_uniformLocations[name], value);
+        }
+
         public void SetMatrix4(Dictionary<string, Matrix4> uniforms)
         {
             if (uniforms.Count <= 0) return;

@@ -242,10 +242,22 @@ namespace MyDailyLife
             CubeMesh = new Cube(cubeVertecies, cubeindices, LightningShader, [Matrix4.Identity]);
 
             LightningValue.Add("lightPos", UpdateLightPosition());
-            LightningValue.Add("objectColor", new(1.0f, 0.5f, 0.31f));
-            LightningValue.Add("lightColor", new(1.0f, 1.0f, 1.0f));
+            //LightningValue.Add("objectColor", new(1.0f, 0.5f, 0.31f));
+            //LightningValue.Add("lightColor", new(1.0f));
+
+            
+
+            LightningValue.Add("material.ambient", new(1.0f, 0.5f, 0.31f));
+            LightningValue.Add("material.diffuse", new(1.0f, 0.5f, 0.31f));
+            LightningValue.Add("material.specular", new(0.5f, 0.5f, 0.5f));
+            
+            LightningValue.Add("light.ambient", new(0.2f));
+            LightningValue.Add("light.diffuse", new(0.5f));
+            LightningValue.Add("light.specular", new(1.0f));
+
 
             LightningShader.SetVec3(LightningValue);
+            LightningShader.SetFloat("material.shininess", 32.0f);
 
             _camera = new Camera(Vector3.UnitZ * 3, (float)(Size.X / Size.Y));
 
@@ -324,9 +336,7 @@ namespace MyDailyLife
             Matrix4 lightPosModel = Matrix4.CreateScale(0.2f);
             lightPosModel = lightPosModel * Matrix4.CreateTranslation(lightPosition);
 
-            LightCubeShader.SetMatrix4("model", lightPosModel);
-
-
+            //LightCubeShader.SetMatrix4("model", lightPosModel);
             LightCubeMesh.Render(_deltaTime);
 
 
@@ -403,7 +413,7 @@ namespace MyDailyLife
 
             //LightningSource.Dispose();
             LightCubeMesh.Dispose();
-            //CubeMesh.Dispose();
+            CubeMesh.Dispose();
 
             GL.DeleteProgram(0);
 
