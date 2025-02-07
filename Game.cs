@@ -43,10 +43,13 @@ namespace MyDailyLife
         private Shader LightningShader;
 
         private Mesh LightCubeMesh;
-        private Shader LightCubeShader;
+        //private Shader LightCubeShader;
 
         //private Shader Shader;
         private Mesh CubeMesh;
+
+        private Mesh Circle;
+        private Shader CircleShader;
 
         private Vector3 LightPos = new(1.2f, 1.0f, 2.0f);
 
@@ -55,7 +58,6 @@ namespace MyDailyLife
 
         private float LightAngle = 0.0f;
 
-        private Dictionary<string, Matrix4> WorldProjection = new();
 
         private Dictionary<string, Vector3> LightningValue = new();
 
@@ -92,180 +94,175 @@ namespace MyDailyLife
 
             GL.ClearColor(new Color4(0.2f, 0.3f, 0.3f, 1.0f));
 
-            Vector3 sourceColor = new(1.0f, 1.0f, 1.0f);
+            //Vector3 sourceColor = new(1.0f, 1.0f, 1.0f);
 
-            uint[] ligthingIndices = [
-                        // back
-                        0, 1, 2,
-                        2, 3, 0,
+            //uint[] ligthingIndices = [
+            //            // back
+            //            0, 1, 2,
+            //            2, 3, 0,
 
-                        // front
-                        4, 5, 6,
-                        6, 7, 4,
+            //            // front
+            //            4, 5, 6,
+            //            6, 7, 4,
 
-                        // left
-                        0, 4, 7,
-                        7, 3, 0,
+            //            // left
+            //            0, 4, 7,
+            //            7, 3, 0,
 
-                        // right
-                        1, 5, 6,
-                        6, 2, 1,
+            //            // right
+            //            1, 5, 6,
+            //            6, 2, 1,
 
-                        // top
-                        3, 7, 6,
-                        6, 2, 3,
+            //            // top
+            //            3, 7, 6,
+            //            6, 2, 3,
 
-                        0, 4, 5,
-                        5, 1, 0
+            //            0, 4, 5,
+            //            5, 1, 0
 
-                    ];
+            //        ];
 
-            Vertex[] lightningVertecies = [
-                    new([-0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-                    new([0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-                    new([0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-                    new([-0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+            //Vertex[] lightningVertecies = [
+            //        new([-0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+            //        new([0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+            //        new([0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+            //        new([-0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
 
-                    new([-0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-                    new([0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-                    new([0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-                    new([-0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-            ];
-
-
-            Vertex[] cubeVertecies = [
-                 // rear face
-                    new([-0.5f, -0.5f, -0.5f], [.0f, 0.0f, -1.0f], [0.0f, 0.0f]),
-                    new([0.5f, -0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [1.0f, 0.0f]),
-                    new([0.5f, 0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [1.0f, 1.0f]),
-
-                    new([0.5f, 0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [1.0f, 1.0f]),
-                    new([-0.5f, 0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [0.0f, 1.0f]),
-                    new([-0.5f, -0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [0.0f, 0.0f]),
+            //        new([-0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+            //        new([0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+            //        new([0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+            //        new([-0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
+            //];
 
 
-                    // front face
-                    new([-0.5f, -0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [0.0f, 0.0f]),
-                    new([0.5f, -0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [1.0f, 0.0f]),
-                    new([0.5f, 0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [1.0f, 1.0f]),
+            //Vertex[] cubeVertecies = [
+            //     // rear face
+            //        new([-0.5f, -0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [0.0f, 0.0f]),
+            //        new([0.5f, -0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [1.0f, 0.0f]),
+            //        new([0.5f, 0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [1.0f, 1.0f]),
 
-                    new([0.5f, 0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [1.0f, 1.0f]),
-                    new([-0.5f, 0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [0.0f, 1.0f]),
-                    new([-0.5f, -0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [0.0f, 0.0f]),
-
-
-                    // left face
-                    new([-0.5f, -0.5f, -0.5f], [-1.0f, 0.0f, 0.0f], [0.0f, 0.0f]),
-                    new([-0.5f, -0.5f, 0.5f], [-1.0f, 0.0f, 0.0f], [1.0f, 0.0f]),
-                    new([-0.5f, 0.5f, 0.5f], [-1.0f, 0.0f, 0.0f], [1.0f, 1.0f]),
-
-                    new([-0.5f, 0.5f, 0.5f], [-1.0f, 0.0f, 0.0f], [1.0f, 1.0f]),
-                    new([-0.5f, 0.5f, -0.5f], [-1.0f, 0.0f, 0.0f], [0.0f, 1.0f]),
-                    new([-0.5f, -0.5f, -0.5f], [-1.0f, 0.0f, 0.0f], [0.0f, 0.0f]),
-                
-                    // right face
-                    new([0.5f, -0.5f, 0.5f], [1.0f, 0.0f, 0.0f], [0.0f, 0.0f]),
-                    new([0.5f, -0.5f, -0.5f], [1.0f, 0.0f, 0.0f], [1.0f, 0.0f]),
-                    new([0.5f, 0.5f, 0.5f], [1.0f, 0.0f, 0.0f], [0.0f, 1.0f]),
-
-                    new([0.5f, 0.5f, 0.5f], [1.0f, 0.0f, 0.0f], [0.0f, 1.0f]),
-                    new([0.5f, 0.5f, -0.5f], [1.0f, 0.0f, 0.0f], [1.0f, 1.0f]),
-                    new([0.5f, -0.5f, -0.5f], [1.0f, 0.0f, 0.0f], [1.0f, 0.0f]),
-
-                    // top face
-                    new([-0.5f, 0.5f, 0.5f], [0.0f, 1.0f, 0.0f], [0.0f, 0.0f]),
-                    new([0.5f, 0.5f, 0.5f], [0.0f, 1.0f, 0.0f], [1.0f, 0.0f]),
-                    new([0.5f, 0.5f, -0.5f], [0.0f, 1.0f, 0.0f], [1.0f, 1.0f]),
-
-                    new([0.5f, 0.5f, -0.5f], [0.0f, 1.0f, 0.0f], [1.0f, 1.0f]),
-                    new([-0.5f, 0.5f, -0.5f], [0.0f, 1.0f, 0.0f], [0.0f, 1.0f]),
-                    new([-0.5f, 0.5f, 0.5f], [0.0f, 1.0f, 0.0f], [0.0f, 0.0f]),
-                
-                    // bottom face
-                    new([-0.5f, -0.5f, 0.5f], [0.0f, -1.0f, 0.0f], [0.0f, 0.0f]),
-                    new([0.5f, -0.5f, 0.5f], [0.0f, -1.0f, 0.0f], [1.0f, 0.0f]),
-                    new([0.5f, -0.5f, -0.5f], [0.0f, -1.0f, 0.0f], [1.0f, 1.0f]),
-
-                    new([0.5f, -0.5f, -0.5f], [0.0f, -1.0f, 0.0f], [1.0f, 1.0f]),
-                    new([-0.5f, -0.5f, -0.5f], [0.0f, -1.0f, 0.0f], [0.0f, 1.0f]),
-                    new([-0.5f, -0.5f, 0.5f], [0.0f, -1.0f, 0.0f], [0.0f, 0.0f]),
-            ];
-
-            uint[] cubeindices =
-            {
-                // front
-                0, 2, 1,
-                1, 3, 0,
-            };
+            //        new([0.5f, 0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [1.0f, 1.0f]),
+            //        new([-0.5f, 0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [0.0f, 1.0f]),
+            //        new([-0.5f, -0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [0.0f, 0.0f]),
 
 
-            // translate the light position and scale it down
+            //        // front face
+            //        new([-0.5f, -0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [0.0f, 0.0f]),
+            //        new([0.5f, -0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [1.0f, 0.0f]),
+            //        new([0.5f, 0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [1.0f, 1.0f]),
 
-            LightCubeModel = Matrix4.Identity;
-
-            //LightCubeModel = LightCubeModel * Matrix4.CreateTranslation(LightPos);
-
-            LightCubeModel = LightCubeModel * Matrix4.CreateScale(0.2f);
-
-            LightCubeShader = new BasicColorShader("lightning/light_cube.vert", "lightning/light_cube.frag");
-            LightCubeMesh = new Cube(
-                cubeVertecies,
-                cubeindices,
-                LightCubeShader,
-                models: [LightCubeModel]
-            );
+            //        new([0.5f, 0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [1.0f, 1.0f]),
+            //        new([-0.5f, 0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [0.0f, 1.0f]),
+            //        new([-0.5f, -0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [0.0f, 0.0f]),
 
 
+            //        // left face
+            //        new([-0.5f, -0.5f, -0.5f], [-1.0f, 0.0f, 0.0f], [0.0f, 0.0f]),
+            //        new([-0.5f, -0.5f, 0.5f], [-1.0f, 0.0f, 0.0f], [1.0f, 0.0f]),
+            //        new([-0.5f, 0.5f, 0.5f], [-1.0f, 0.0f, 0.0f], [1.0f, 1.0f]),
+
+            //        new([-0.5f, 0.5f, 0.5f], [-1.0f, 0.0f, 0.0f], [1.0f, 1.0f]),
+            //        new([-0.5f, 0.5f, -0.5f], [-1.0f, 0.0f, 0.0f], [0.0f, 1.0f]),
+            //        new([-0.5f, -0.5f, -0.5f], [-1.0f, 0.0f, 0.0f], [0.0f, 0.0f]),
+
+            //        // right face
+            //        new([0.5f, -0.5f, 0.5f], [1.0f, 0.0f, 0.0f], [0.0f, 0.0f]),
+            //        new([0.5f, -0.5f, -0.5f], [1.0f, 0.0f, 0.0f], [1.0f, 0.0f]),
+            //        new([0.5f, 0.5f, 0.5f], [1.0f, 0.0f, 0.0f], [0.0f, 1.0f]),
+
+            //        new([0.5f, 0.5f, 0.5f], [1.0f, 0.0f, 0.0f], [0.0f, 1.0f]),
+            //        new([0.5f, 0.5f, -0.5f], [1.0f, 0.0f, 0.0f], [1.0f, 1.0f]),
+            //        new([0.5f, -0.5f, -0.5f], [1.0f, 0.0f, 0.0f], [1.0f, 0.0f]),
+
+            //        // top face
+            //        new([-0.5f, 0.5f, 0.5f], [0.0f, 1.0f, 0.0f], [0.0f, 0.0f]),
+            //        new([0.5f, 0.5f, 0.5f], [0.0f, 1.0f, 0.0f], [1.0f, 0.0f]),
+            //        new([0.5f, 0.5f, -0.5f], [0.0f, 1.0f, 0.0f], [1.0f, 1.0f]),
+
+            //        new([0.5f, 0.5f, -0.5f], [0.0f, 1.0f, 0.0f], [1.0f, 1.0f]),
+            //        new([-0.5f, 0.5f, -0.5f], [0.0f, 1.0f, 0.0f], [0.0f, 1.0f]),
+            //        new([-0.5f, 0.5f, 0.5f], [0.0f, 1.0f, 0.0f], [0.0f, 0.0f]),
+
+            //        // bottom face
+            //        new([-0.5f, -0.5f, 0.5f], [0.0f, -1.0f, 0.0f], [0.0f, 0.0f]),
+            //        new([0.5f, -0.5f, 0.5f], [0.0f, -1.0f, 0.0f], [1.0f, 0.0f]),
+            //        new([0.5f, -0.5f, -0.5f], [0.0f, -1.0f, 0.0f], [1.0f, 1.0f]),
+
+            //        new([0.5f, -0.5f, -0.5f], [0.0f, -1.0f, 0.0f], [1.0f, 1.0f]),
+            //        new([-0.5f, -0.5f, -0.5f], [0.0f, -1.0f, 0.0f], [0.0f, 1.0f]),
+            //        new([-0.5f, -0.5f, 0.5f], [0.0f, -1.0f, 0.0f], [0.0f, 0.0f]),
+            //];
+
+            //uint[] cubeindices =
+            //{
+            //    // front
+            //    0, 2, 1,
+            //    1, 3, 0,
+            //};
 
 
-            //LightningSource = new CubeEBO(
-            //    vertecies: lightningVertecies,
-            //    indices: ligthingIndices,
-            //    shader: LightningShader,
-            //    [new(0.0f, 0.0f, 0.0f)]
+            //// translate the light position and scale it down
+
+            //LightCubeModel = Matrix4.Identity;
+
+            ////LightCubeModel = LightCubeModel * Matrix4.CreateTranslation(LightPos);
+
+            //LightCubeModel = LightCubeModel * Matrix4.CreateScale(0.2f);
+
+            //LightCubeShader = new BasicColorShader("lightning/light_cube.vert", "lightning/light_cube.frag");
+            //LightCubeMesh = new Cube(
+            //    cubeVertecies,
+            //    cubeindices,
+            //    LightCubeShader,
+            //    models: [LightCubeModel]
             //);
 
-            //// Load Texture
-            //_texture = new("Assets/Textures/container.jpg");
-
-            //_texture1 = new("Assets/Textures/awesomeface.png");
 
 
-            //Shader = new TextureShader("shader.vert", "shader.frag", [_texture, _texture1]);
 
-            //Matrix4 LightModel = Matrix4.CreateRotationY(totalDegres);
-            //Matrix4 translate = Matrix4.CreateTranslation(Positions[i]);
+            ////LightningSource = new CubeEBO(
+            ////    vertecies: lightningVertecies,
+            ////    indices: ligthingIndices,
+            ////    shader: LightningShader,
+            ////    [new(0.0f, 0.0f, 0.0f)]
+            ////);
 
-            //LightModel *= translate;
+            ////// Load Texture
+            ////_texture = new("Assets/Textures/container.jpg");
 
-            LightningShader = new BasicColorShader("basic/basic.vert", "basic/basic.frag");
-            CubeMesh = new Cube(cubeVertecies, cubeindices, LightningShader, [Matrix4.Identity]);
-
-            LightningValue.Add("lightPos", UpdateLightPosition());
-            //LightningValue.Add("objectColor", new(1.0f, 0.5f, 0.31f));
-            //LightningValue.Add("lightColor", new(1.0f));
-
-            
-
-            LightningValue.Add("material.ambient", new(1.0f, 0.5f, 0.31f));
-            LightningValue.Add("material.diffuse", new(1.0f, 0.5f, 0.31f));
-            LightningValue.Add("material.specular", new(0.5f, 0.5f, 0.5f));
-            
-            LightningValue.Add("light.ambient", new(0.2f));
-            LightningValue.Add("light.diffuse", new(0.5f));
-            LightningValue.Add("light.specular", new(1.0f));
+            ////_texture1 = new("Assets/Textures/awesomeface.png");
 
 
-            LightningShader.SetVec3(LightningValue);
-            LightningShader.SetFloat("material.shininess", 32.0f);
+            ////Shader = new TextureShader("shader.vert", "shader.frag", [_texture, _texture1]);
+
+            ////Matrix4 LightModel = Matrix4.CreateRotationY(totalDegres);
+            ////Matrix4 translate = Matrix4.CreateTranslation(Positions[i]);
+
+            ////LightModel *= translate;
+
+            //LightningShader = new BasicColorShader("basic/basic.vert", "basic/basic.frag");
+            //CubeMesh = new Cube(cubeVertecies, cubeindices, LightningShader, [Matrix4.Identity]);
+
+            //LightningValue.Add("lightPos", UpdateLightPosition());
+            ////LightningValue.Add("objectColor", new(1.0f, 0.5f, 0.31f));
+            ////LightningValue.Add("lightColor", new(1.0f));
+            ///
+            //LightningValue.Add("material.ambient", new(1.0f, 0.5f, 0.31f));
+            //LightningValue.Add("material.diffuse", new(1.0f, 0.5f, 0.31f));
+            //LightningValue.Add("material.specular", new(0.5f, 0.5f, 0.5f));
+
+            //LightningValue.Add("light.ambient", new(0.2f));
+            //LightningValue.Add("light.diffuse", new(0.5f));
+            //LightningValue.Add("light.specular", new(1.0f));
+
+
+            //LightningShader.SetVec3(LightningValue);
+            //LightningShader.SetFloat("material.shininess", 32.0f);
 
             _camera = new Camera(Vector3.UnitZ * 3, (float)(Size.X / Size.Y));
 
+            CreateCircleVertecies();
 
-            /// ============================ try UBO again later ===================================
-
-            //int blockIndex = GL.GetUniformBlockIndex(Shader.Handle, "Matrices");
-            //GL.UniformBlockBinding(Shader.Handle, blockIndex, 0);
 
             Ubo = GL.GenBuffer();
             UboSize = 2 * (sizeof(float) * (4 * 4));
@@ -283,6 +280,114 @@ namespace MyDailyLife
 
 
         }
+
+
+        private Vector3[] CreateCircleVertecies()
+        {
+            // ================================== test ===========================================
+            CircleShader = new BasicColorShader("basic/Circle/circle.vert", "basic/Circle/circle.frag");
+            Circle = new Circle(
+                    [
+                        // rear
+                        new(new(-0.5f, -0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
+                        new(new(0.5f, -0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
+                        new(new(0.5f, 0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
+                        
+                        new(new(0.5f, 0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
+                        new(new(-0.5f, 0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
+                        new(new(-0.5f, -0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
+
+                        // front
+                        new(new(-0.5f, -0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
+                        new(new(0.5f, -0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
+                        new(new(0.5f, 0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
+
+                        new(new(0.5f, 0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
+                        new(new(-0.5f, 0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
+                        new(new(-0.5f, -0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
+
+                        //left
+                        new(new(-0.5f, -0.5f, -0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
+                        new(new(-0.5f, -0.5f, 0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
+                        new(new(-0.5f, 0.5f, 0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
+
+                        new(new(-0.5f, 0.5f, 0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
+                        new(new(-0.5f, 0.5f, -0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
+                        new(new(-0.5f, -0.5f, -0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
+
+                        // right
+                        new(new(0.5f, -0.5f, 0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
+                        new(new(0.5f, -0.5f, -0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
+                        new(new(0.5f, 0.5f, 0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
+
+                        new(new(0.5f, 0.5f, 0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
+                        new(new(0.5f, 0.5f, -0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
+                        new(new(0.5f, -0.5f, -0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
+
+                        // top
+                        new(new(-0.5f, 0.5f, 0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
+                        new(new(0.5f, 0.5f, 0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
+                        new(new(0.5f, 0.5f, -0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
+
+                        new(new(0.5f, 0.5f, -0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
+                        new(new(-0.5f, 0.5f, -0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
+                        new(new(-0.5f, 0.5f, 0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
+
+                        // bottom
+                        new(new(-0.5f, -0.5f, 0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
+                        new(new(0.5f, -0.5f, 0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
+                        new(new(0.5f, -0.5f, -0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
+
+                        new(new(0.5f, -0.5f, -0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
+                        new(new(-0.5f, -0.5f, -0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
+                        new(new(-0.5f, -0.5f, 0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
+
+                    ],
+                    [
+                        0, 2, 1,
+                        1, 3, 0,
+                    ],
+                        CircleShader, 
+                        count: 1
+                );
+
+            Matrix4 circleModel = Matrix4.Identity;
+            circleModel = circleModel * Matrix4.CreateScale(0.3f);
+
+            CircleShader.SetMatrix4("model", circleModel);
+
+
+
+
+
+            // define the center point
+            int numberOfTriangle = 32;
+            Vector3[] vertecies = new Vector3[numberOfTriangle];
+
+            float center = 0.0f;
+            float radius = 5.0f;
+
+            float offsetY = 0.0f;
+
+            for (int i = 0; i < numberOfTriangle; i++) 
+            { 
+                float angle = 2.0f * MathHelper.Pi * i / numberOfTriangle;
+                float offsetX = radius * (float)MathHelper.Cos(angle);
+                float offsetZ = radius * (float)MathHelper.Sin(angle);
+
+                vertecies[i] = new Vector3(offsetX, offsetY, offsetZ);
+            }
+
+            return vertecies;
+        }
+
+        private void RenderCircle()
+        {
+
+
+            Circle.Render(_deltaTime);
+        }
+
         protected override void OnRenderFrame(FrameEventArgs args)
         {
             base.OnRenderFrame(args);
@@ -293,23 +398,6 @@ namespace MyDailyLife
             _time += args.Time;
             _deltaTime = _time - _lastime;
 
-            /// ============================ try UBO again later ===================================
-
-            //float[,] projection = new float[4, 4];
-            //float[,] view = new float[4, 4];
-
-            //Matrix4 viewMat = _camera.GetViewMatrix();
-            //Matrix4 projectionMat = _camera.GetProjectionMatrix();
-
-
-            //for (int i = 0; i < 4; i++)
-            //{
-            //    for (int j = 0; j < 4; j++)
-            //    {
-            //        view[i, j] = viewMat[i, j];
-            //        projection[i, j] = projectionMat[i, j];
-            //    }
-            //}
             Matrix4 viewMatrix = _camera.GetViewMatrix();
             Matrix4 projectionMatrix = _camera.GetProjectionMatrix();
 
@@ -323,21 +411,23 @@ namespace MyDailyLife
 
 
 
-            Vector3 lightPosition = UpdateLightPosition();
+            //Vector3 lightPosition = UpdateLightPosition();
 
-            LightningShader.SetVec3("lightPos", lightPosition);
-            LightningShader.SetVec3("viewPos", _camera.Position);
+            //LightningShader.SetVec3("lightPos", lightPosition);
+            //LightningShader.SetVec3("viewPos", _camera.Position);
 
-            CubeMesh.Render(_deltaTime);
+            //CubeMesh.Render(_deltaTime);
 
             //Matrix4.CreateScale(0.2f); // We scale the lamp cube down a bit to make it less dominant
             //lampMatrix = lampMatrix * Matrix4.CreateTranslation(_lightPos);
 
-            Matrix4 lightPosModel = Matrix4.CreateScale(0.2f);
-            lightPosModel = lightPosModel * Matrix4.CreateTranslation(lightPosition);
+            //Matrix4 lightPosModel = Matrix4.CreateScale(0.2f);
+            //lightPosModel = lightPosModel * Matrix4.CreateTranslation(lightPosition);
 
             //LightCubeShader.SetMatrix4("model", lightPosModel);
-            LightCubeMesh.Render(_deltaTime);
+            //LightCubeMesh.Render(_deltaTime);
+
+            RenderCircle();
 
 
 
@@ -352,6 +442,8 @@ namespace MyDailyLife
 
             SwapBuffers();
         }
+
+
 
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
@@ -412,8 +504,9 @@ namespace MyDailyLife
             //GL.DeleteBuffer(Ubo);
 
             //LightningSource.Dispose();
-            LightCubeMesh.Dispose();
-            CubeMesh.Dispose();
+            //LightCubeMesh.Dispose();
+            //CubeMesh.Dispose();
+            Circle.Dispose();
 
             GL.DeleteProgram(0);
 

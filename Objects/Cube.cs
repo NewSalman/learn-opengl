@@ -17,20 +17,6 @@ namespace MyDailyLife.Objects
         {
         }
 
-        protected override void BeforeDraw(double time)
-        {
-            base.BeforeDraw(time);
-
-            //float totalDegres = (float)MathHelper.DegreesToRadians(time);
-
-            // =================== need to be inside loop ======================= fix it!!!
-            //Matrix4 model = Matrix4.CreateRotationY(totalDegres);
-            //Matrix4 translate = Matrix4.CreateTranslation(Positions[i]);
-
-            //model *= translate;
-
-        }
-
         protected override void Draw(double time)
         {
 
@@ -48,13 +34,13 @@ namespace MyDailyLife.Objects
             float[] vboData = MergeArrays();
             int stride = Vertecies[0].Size * sizeof(float);
 
-            Vbo = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, vboData.Length * sizeof(float), vboData, BufferUsageHint.StaticDraw);
+            //Vbo = GL.GenBuffer();
+            //GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
+            //GL.BufferData(BufferTarget.ArrayBuffer, vboData.Length * sizeof(float), vboData, BufferUsageHint.StaticDraw);
 
-            Ebo = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, Ebo);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, Indices.Length * sizeof(uint), Indices, BufferUsageHint.StaticDraw);
+            //Ebo = GL.GenBuffer();
+            //GL.BindBuffer(BufferTarget.ElementArrayBuffer, Ebo);
+            //GL.BufferData(BufferTarget.ElementArrayBuffer, Indices.Length * sizeof(uint), Indices, BufferUsageHint.StaticDraw);
 
             // position
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);

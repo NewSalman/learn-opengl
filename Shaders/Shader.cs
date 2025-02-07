@@ -123,6 +123,7 @@ namespace MyDailyLife.Shaders
             GL.Uniform1(_uniformLocations[name], value);
         }
 
+        [Obsolete("this method will be replace later")]
         public void SetMatrix4(Dictionary<string, Matrix4> uniforms)
         {
             if (uniforms.Count <= 0) return;
@@ -142,6 +143,7 @@ namespace MyDailyLife.Shaders
             GL.Uniform3(_uniformLocations[name], value);
         }
 
+        [Obsolete("this method will be replace later")]
         public void SetVec3(Dictionary<string, Vector3> uniforms)
         {
             if (uniforms.Count <= 0) return;
