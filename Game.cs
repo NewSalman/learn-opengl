@@ -11,6 +11,8 @@ using System.Runtime.InteropServices;
 using ErrorCode = OpenTK.Graphics.OpenGL4.ErrorCode;
 using System.Reflection.Metadata;
 using System.Xml.Linq;
+using System.Collections.Generic;
+using System.Transactions;
 
 namespace MyDailyLife
 {
@@ -197,14 +199,13 @@ namespace MyDailyLife
             };
 
 
-
             // translate the light position and scale it down
 
             LightCubeModel = Matrix4.Identity;
 
-            LightCubeModel = Matrix4.CreateTranslation(LightPos) * LightCubeModel;
+            //LightCubeModel = LightCubeModel * Matrix4.CreateTranslation(LightPos);
 
-            LightCubeModel = Matrix4.CreateScale(0.2f) * LightCubeModel;
+            LightCubeModel = LightCubeModel * Matrix4.CreateScale(0.2f);
 
             LightCubeShader = new BasicColorShader("lightning/light_cube.vert", "lightning/light_cube.frag");
             LightCubeMesh = new Cube(
@@ -246,7 +247,7 @@ namespace MyDailyLife
 
             LightningShader.SetVec3(LightningValue);
 
-
+            _camera = new Camera(Vector3.UnitZ * 3, (float)(Size.X / Size.Y));
 
 
             /// ============================ try UBO again later ===================================
@@ -254,20 +255,14 @@ namespace MyDailyLife
             //int blockIndex = GL.GetUniformBlockIndex(Shader.Handle, "Matrices");
             //GL.UniformBlockBinding(Shader.Handle, blockIndex, 0);
 
-            //Ubo = GL.GenBuffer();
-            //UboSize = 2 * (sizeof(float) * (4 * 4));
+            Ubo = GL.GenBuffer();
+            UboSize = 2 * (sizeof(float) * (4 * 4));
 
-            //GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
-            //GL.BufferData(BufferTarget.UniformBuffer, UboSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
-            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+            GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
+            GL.BufferData(BufferTarget.UniformBuffer, UboSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
 
-            //GL.BindBufferRange(BufferRangeTarget.UniformBuffer, blockIndex, Ubo, 0, UboSize);
-
-            _camera = new Camera(Vector3.UnitZ * 3, (float)(Size.X / Size.Y));
-
-
-            WorldProjection.Add("view", _camera.GetViewMatrix());
-            WorldProjection.Add("projection", _camera.GetProjectionMatrix());
+            GL.BindBufferRange(BufferRangeTarget.UniformBuffer, Constants.CameraUniformBufferPoint, Ubo, 0, UboSize);
 
             GL.Enable(EnableCap.DepthTest);
 
@@ -286,23 +281,6 @@ namespace MyDailyLife
             _time += args.Time;
             _deltaTime = _time - _lastime;
 
-            Matrix4 viewMatrix = _camera.GetViewMatrix();
-            Matrix4 projectionMatrix = _camera.GetProjectionMatrix();
-
-            Vector3 lightPosition = UpdateLightPosition();
-
-            WorldProjection["view"] = viewMatrix;
-            WorldProjection["projection"] = projectionMatrix;
-
-            LightningShader.SetVec3("lightPos", lightPosition);
-            LightningShader.SetVec3("viewPos", _camera.Position);
-
-            //LightningShader.SetVec3(LightningValue);
-            LightningShader.SetMatrix4(WorldProjection);
-
-            CubeMesh.Render(_deltaTime);
-            //LightningSource.Render(deltaTime);
-
             /// ============================ try UBO again later ===================================
 
             //float[,] projection = new float[4, 4];
@@ -320,21 +298,34 @@ namespace MyDailyLife
             //        projection[i, j] = projectionMat[i, j];
             //    }
             //}
+            Matrix4 viewMatrix = _camera.GetViewMatrix();
+            Matrix4 projectionMatrix = _camera.GetProjectionMatrix();
 
-            //GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
-            //GL.BufferSubData(BufferTarget.UniformBuffer, 0, sizeof(float) * 4 * 4, projection);
-            //GL.BufferSubData(BufferTarget.UniformBuffer, (sizeof(float) * 4 * 4), sizeof(float) * 4 * 4, view);
-            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
-
-
-
-            Matrix4 lightPosModel = Matrix4.Identity;
-            lightPosModel = Matrix4.CreateTranslation(lightPosition) * lightPosModel;
-            lightPosModel = Matrix4.CreateScale(0.2f) * lightPosModel;
-
-            LightCubeShader.SetMatrix4(WorldProjection);
-            LightCubeShader.SetMatrix4("model", lightPosModel);
+            GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
+            GL.BufferSubData(BufferTarget.UniformBuffer, 0, sizeof(float) * 4 * 4, [Matrix4.Transpose(viewMatrix)]);
+            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
             
+            GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
+            GL.BufferSubData(BufferTarget.UniformBuffer, sizeof(float) * 4 * 4, sizeof(float) * 4 * 4, [Matrix4.Transpose(projectionMatrix)]);
+            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+
+
+
+            Vector3 lightPosition = UpdateLightPosition();
+
+            LightningShader.SetVec3("lightPos", lightPosition);
+            LightningShader.SetVec3("viewPos", _camera.Position);
+
+            CubeMesh.Render(_deltaTime);
+
+            //Matrix4.CreateScale(0.2f); // We scale the lamp cube down a bit to make it less dominant
+            //lampMatrix = lampMatrix * Matrix4.CreateTranslation(_lightPos);
+
+            Matrix4 lightPosModel = Matrix4.CreateScale(0.2f);
+            lightPosModel = lightPosModel * Matrix4.CreateTranslation(lightPosition);
+
+            LightCubeShader.SetMatrix4("model", lightPosModel);
+
 
             LightCubeMesh.Render(_deltaTime);
 

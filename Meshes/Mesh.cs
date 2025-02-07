@@ -47,15 +47,11 @@ namespace MyDailyLife.Meshes
 
             Initialize();
 
-
-            /// ============================ try UBO again later ===================================
-
-            //int uniformBlockIndex = Shader.GetUniformBlockIndex("Matrices");
-
-            //Shader.SetUniformBlockBinding(uniformBlockIndex, Constants.CameraUniformBufferPoint);
-
-            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
             GL.BindVertexArray(0);
+
+            int uniformBlockIndex = Shader.GetUniformBlockIndex("Matrices");
+
+            Shader.SetUniformBlockBinding(uniformBlockIndex, Constants.CameraUniformBufferPoint);
         }
 
         abstract protected void Initialize();
