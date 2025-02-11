@@ -13,6 +13,7 @@ using System.Reflection.Metadata;
 using System.Xml.Linq;
 using System.Collections.Generic;
 using System.Transactions;
+using System.Reflection;
 
 namespace MyDailyLife
 {
@@ -28,7 +29,7 @@ namespace MyDailyLife
         //private Texture _texture;
         //private Texture _texture1;
 
-        private float speed = 1.0f;
+        private float speed = 3.0f;
         private double _time = 0.0;
         private double _lastime = 0.0;
         private double _deltaTime = 0.0;
@@ -62,6 +63,8 @@ namespace MyDailyLife
         private Dictionary<string, Vector3> LightningValue = new();
 
         private Matrix4 LightCubeModel;
+
+        private Cylinder Cylinder;
 
 
         private Vector3 UpdateLightPosition()
@@ -271,122 +274,121 @@ namespace MyDailyLife
             GL.BufferData(BufferTarget.UniformBuffer, UboSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
 
-            GL.BindBufferRange(BufferRangeTarget.UniformBuffer, Constants.CameraUniformBufferPoint, Ubo, 0, UboSize);
+            GL.BindBufferRange(BufferRangeTarget.UniformBuffer, Constants.ClippedSpaceBlockIndex, Ubo, 0, UboSize);
 
             GL.Enable(EnableCap.DepthTest);
 
             // We make the mouse cursor invisible and captured so we can have proper FPS-camera movement.
             CursorState = CursorState.Grabbed;
 
+            Cylinder = new(3.0f, 3.0f, 64);
+
 
         }
 
 
-        private Vector3[] CreateCircleVertecies()
+        private void CreateCircleVertecies()
         {
-            // ================================== test ===========================================
-            CircleShader = new BasicColorShader("basic/Circle/circle.vert", "basic/Circle/circle.frag");
-            Circle = new Circle(
-                    [
-                        // rear
-                        new(new(-0.5f, -0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
-                        new(new(0.5f, -0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
-                        new(new(0.5f, 0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
-                        
-                        new(new(0.5f, 0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
-                        new(new(-0.5f, 0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
-                        new(new(-0.5f, -0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
+            //[
+            //            // rear
+            //            new(new(-0.5f, -0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
+            //            new(new(0.5f, -0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
+            //            new(new(0.5f, 0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
 
-                        // front
-                        new(new(-0.5f, -0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
-                        new(new(0.5f, -0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
-                        new(new(0.5f, 0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
+            //            new(new(0.5f, 0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
+            //            new(new(-0.5f, 0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
+            //            new(new(-0.5f, -0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
 
-                        new(new(0.5f, 0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
-                        new(new(-0.5f, 0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
-                        new(new(-0.5f, -0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
+            //            // front
+            //            new(new(-0.5f, -0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
+            //            new(new(0.5f, -0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
+            //            new(new(0.5f, 0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
 
-                        //left
-                        new(new(-0.5f, -0.5f, -0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
-                        new(new(-0.5f, -0.5f, 0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
-                        new(new(-0.5f, 0.5f, 0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
+            //            new(new(0.5f, 0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
+            //            new(new(-0.5f, 0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
+            //            new(new(-0.5f, -0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
 
-                        new(new(-0.5f, 0.5f, 0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
-                        new(new(-0.5f, 0.5f, -0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
-                        new(new(-0.5f, -0.5f, -0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
+            //            //left
+            //            new(new(-0.5f, -0.5f, -0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
+            //            new(new(-0.5f, -0.5f, 0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
+            //            new(new(-0.5f, 0.5f, 0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
 
-                        // right
-                        new(new(0.5f, -0.5f, 0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
-                        new(new(0.5f, -0.5f, -0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
-                        new(new(0.5f, 0.5f, 0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
+            //            new(new(-0.5f, 0.5f, 0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
+            //            new(new(-0.5f, 0.5f, -0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
+            //            new(new(-0.5f, -0.5f, -0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
 
-                        new(new(0.5f, 0.5f, 0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
-                        new(new(0.5f, 0.5f, -0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
-                        new(new(0.5f, -0.5f, -0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
+            //            // right
+            //            new(new(0.5f, -0.5f, 0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
+            //            new(new(0.5f, -0.5f, -0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
+            //            new(new(0.5f, 0.5f, 0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
 
-                        // top
-                        new(new(-0.5f, 0.5f, 0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
-                        new(new(0.5f, 0.5f, 0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
-                        new(new(0.5f, 0.5f, -0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
+            //            new(new(0.5f, 0.5f, 0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
+            //            new(new(0.5f, 0.5f, -0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
+            //            new(new(0.5f, -0.5f, -0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
 
-                        new(new(0.5f, 0.5f, -0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
-                        new(new(-0.5f, 0.5f, -0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
-                        new(new(-0.5f, 0.5f, 0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
+            //            // top
+            //            new(new(-0.5f, 0.5f, 0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
+            //            new(new(0.5f, 0.5f, 0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
+            //            new(new(0.5f, 0.5f, -0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
 
-                        // bottom
-                        new(new(-0.5f, -0.5f, 0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
-                        new(new(0.5f, -0.5f, 0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
-                        new(new(0.5f, -0.5f, -0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
+            //            new(new(0.5f, 0.5f, -0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
+            //            new(new(-0.5f, 0.5f, -0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
+            //            new(new(-0.5f, 0.5f, 0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
 
-                        new(new(0.5f, -0.5f, -0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
-                        new(new(-0.5f, -0.5f, -0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
-                        new(new(-0.5f, -0.5f, 0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
+            //            // bottom
+            //            new(new(-0.5f, -0.5f, 0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
+            //            new(new(0.5f, -0.5f, 0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
+            //            new(new(0.5f, -0.5f, -0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
 
-                    ],
-                    [
-                        0, 2, 1,
-                        1, 3, 0,
-                    ],
-                        CircleShader, 
-                        count: 1
-                );
+            //            new(new(0.5f, -0.5f, -0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
+            //            new(new(-0.5f, -0.5f, -0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
+            //            new(new(-0.5f, -0.5f, 0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
 
-            Matrix4 circleModel = Matrix4.Identity;
-            circleModel = circleModel * Matrix4.CreateScale(0.3f);
+            //        ],
+            //        [
+            //            0, 2, 1,
+            //            1, 3, 0,
+            //        ],
 
-            CircleShader.SetMatrix4("model", circleModel);
+            //CircleShader = new BasicColorShader("basic/Circle/circle.vert", "basic/Circle/circle.frag");
 
-
+            //Matrix4[] models = [Matrix4.Identity];
 
 
 
             // define the center point
-            int numberOfTriangle = 32;
-            Vector3[] vertecies = new Vector3[numberOfTriangle];
+            // the plus one is for the center of point at x = 0.0f, y = 0.0f, z = 0.0f;
+            //int numberOfTriangle = 64;
 
-            float center = 0.0f;
-            float radius = 5.0f;
 
-            float offsetY = 0.0f;
+            //Circle = new Circle(vertecies, CircleShader);
+            //Circle.Indices = [0, 1, 2];
 
-            for (int i = 0; i < numberOfTriangle; i++) 
-            { 
-                float angle = 2.0f * MathHelper.Pi * i / numberOfTriangle;
-                float offsetX = radius * (float)MathHelper.Cos(angle);
-                float offsetZ = radius * (float)MathHelper.Sin(angle);
+            //Circle.OnDraw = (deltaTime) => 
+            //{
+            //    for (int i = 0; i < models.Length; i++)
+            //    {
+            //        CircleShader.SetMatrix4("model", models[i]);
 
-                vertecies[i] = new Vector3(offsetX, offsetY, offsetZ);
-            }
+            //        GL.DrawArrays(PrimitiveType.TriangleFan, 0, numberOfTriangle);
+            //    }
+            //};
 
-            return vertecies;
+            // set the indices
+            //Circle.Indices = [0, 2, 1, 1, 3, 0,];
+
+
         }
 
-        private void RenderCircle()
-        {
+        
+
+        //private void RenderCircle()
+        //{
 
 
-            Circle.Render(_deltaTime);
-        }
+        //    Circle.Render(_deltaTime);
+        //}
+
 
         protected override void OnRenderFrame(FrameEventArgs args)
         {
@@ -427,7 +429,8 @@ namespace MyDailyLife
             //LightCubeShader.SetMatrix4("model", lightPosModel);
             //LightCubeMesh.Render(_deltaTime);
 
-            RenderCircle();
+
+            Cylinder.Render(_deltaTime);
 
 
 
@@ -506,7 +509,7 @@ namespace MyDailyLife
             //LightningSource.Dispose();
             //LightCubeMesh.Dispose();
             //CubeMesh.Dispose();
-            Circle.Dispose();
+            Cylinder.Dispose();
 
             GL.DeleteProgram(0);
 

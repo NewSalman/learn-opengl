@@ -7,9 +7,8 @@ using OpenTK.Mathematics;
 
 namespace MyDailyLife.Extension
 {
-    public static class Vec3Ext
+    public static class Vector2Ext
     {
-        public static float[] ToArray(this Vector3 vector) => [vector.X, vector.Y, vector.Z];
-
+        public static float[] ToArray(this Vector2 vector) => [vector.X, vector.Y];
     }
 }
