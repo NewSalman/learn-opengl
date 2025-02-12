@@ -84,7 +84,7 @@ namespace MyDailyLife.Objects
 
             CylinderShader = CylinderShader ?? new BasicColorShader("basic/Circle/circle.vert", "basic/Circle/circle.frag");
 
-            CylinderMesh = CylinderMesh ?? new Mesh(buffer, indices, BufferBinding.Vertices_Only);
+            CylinderMesh = CylinderMesh ?? new Mesh(buffer, indices, BufferBinding.Vertices_Normal);
 
             CylinderMesh.Shader = CylinderShader;
             CylinderMesh.ActivateUBO(Constants.ClippedSpaceBlockKey, Constants.ClippedSpaceBlockIndex);
@@ -100,17 +100,17 @@ namespace MyDailyLife.Objects
                     // 1 Slice contain 2 triangle
                     // first = number of slices
 
-                    GL.DrawElements(PrimitiveType.Triangles, indices.Length, DrawElementsType.UnsignedInt, 0);
+                    //GL.DrawElements(PrimitiveType.Triangles, indices.Length, DrawElementsType.UnsignedInt, 0);
 
 
-                    if(WithCover)
+                    if (WithCover)
                     {
                         // top
-                        GL.DrawArrays(PrimitiveType.TriangleFan, 0, Slices + 1);
+                        GL.DrawArrays(PrimitiveType.TriangleFan, Slices * 2 + 3, Slices + 1);
 
 
                         // bottom
-                        GL.DrawArrays(PrimitiveType.TriangleFan, Slices + 1, Slices + 1);
+                        GL.DrawArrays(PrimitiveType.TriangleFan, Slices * 3 + 5, Slices + 1);
                     }
 
 
@@ -143,52 +143,43 @@ namespace MyDailyLife.Objects
             List<float> vertecies = [];
             List<uint> indices = [];
 
-            List<float> consinues = new();
-            List<float> sinuses = new();
-
             List<float> x = new();
             List<float> y = new();
 
             float height = Height / 2.0f;
 
 
-            // Add cylinder side vertices
             for (int i = 0; i <= Slices; i++)
             {
                 float angle = 2.0f * MathHelper.Pi * i / Slices;
-
 
                 x.Add((float)MathHelper.Cos(angle));
                 y.Add((float)MathHelper.Sin(angle));
             }
 
+            for(int i = 0; i <= Slices; i++)
+            {
+                vertecies.AddRange([TopRadius * x[i], height, TopRadius * y[i], x[i], y[i], 0.0f]);
+            }
+
+            for (int i = 0; i <= Slices; i++)
+            {
+                vertecies.AddRange([BottomRadius * x[i], -height, BottomRadius * y[i], x[i], y[i], 0.0f]);
+            }
 
 
-           for(int i = 0; i <= Slices; i++)
-           {
-                vertecies.AddRange([TopRadius * x[i], height, TopRadius * y[i]]);
-           }
+            vertecies.AddRange([TopRadius * 0.0f, height, TopRadius * 0.0f, 0.0f, 1.0f, 0.0f]);
+            for (int i = 0; i <= Slices; i++)
+            {
+               vertecies.AddRange([TopRadius * x[i], height, TopRadius * y[i], 0.0f, 1.0f, 0.0f]);
+            }
 
-            
-           for(int i = 0; i <= Slices; i++)
-           {
-                vertecies.AddRange([BottomRadius * x[i], -height, BottomRadius * y[i]]);
-           }
 
-            // indices for the side surface
-            //for (int i = 0; i < sectorCount; ++i, ++k1, ++k2)
-            //{
-            //    // 2 triangles per sector
-            //    // k1 => k1+1 => k2
-            //    indices.push_back(k1);
-            //    indices.push_back(k1 + 1);
-            //    indices.push_back(k2);
-
-            //    // k2 => k1+1 => k2+1
-            //    indices.push_back(k2);
-            //    indices.push_back(k1 + 1);
-            //    indices.push_back(k2 + 1);
-            //}
+            vertecies.AddRange([BottomRadius * 0.0f, -height, BottomRadius * 0.0f, 0.0f, -1.0f, 0.0f]);
+            for (int i = 0; i <= Slices; i++)
+            {
+                vertecies.AddRange([BottomRadius * x[i], -height, BottomRadius * y[i], 0.0f, -1.0f, 0.0f]);
+            }
 
             //int k1 = 0;                         // 1st vertex index at base
             //int k2 = sectorCount + 1;           // 1st vertex index at top
@@ -217,66 +208,8 @@ namespace MyDailyLife.Objects
             }
 
 
-            //// indices for the base surface
-            ////NOTE: baseCenterIndex and topCenterIndices are pre-computed during vertex generation
-            ////      please see the previous code snippet
-            //for (int i = 0, k = baseCenterIndex + 1; i < sectorCount; ++i, ++k)
-            //{
-            //    if (i < sectorCount - 1)
-            //    {
-            //        indices.push_back(baseCenterIndex);
-            //        indices.push_back(k + 1);
-            //        indices.push_back(k);
-            //    }
-            //    else // last triangle
-            //    {
-            //        indices.push_back(baseCenterIndex);
-            //        indices.push_back(baseCenterIndex + 1);
-            //        indices.push_back(k);
-            //    }
-            //}
 
-            //// Add top cylinder cover
-
-            // top
-            //vertecies.AddRange([0.0f, 0.0f, height]);
-            //for (int i = 0; i <= Slices; i++)
-            //{
-            //    vertecies.AddRange([x[i], y[i], height]);
-            //}
-
-            //// bottom
-            //vertecies.AddRange([0.0f, 0.0f, -height]);
-            //for (int i = 0; i <= Slices; i++)
-            //{
-            //    vertecies.AddRange([x[i], y[i], -height]);
-            //}
-
-
-
-
-
-            //// Add bottom cylinder cover
-            //vertecies.AddRange([0.0f, 0.0f, -height]);
-            //for (int i = 0, k = 0; i <= Slices; i++, k += 2)
-            //{
-            //    vertecies.AddRange([positions[k], positions[k + 1], -height]);
-            //}
-
-            //// Indices for the side surface
-            //for (uint i = 1; i <= Slices; i++)
-            //{
-            //    indices.Add(i);
-            //    indices.Add(i + 1);
-            //    indices.Add(i + 2);
-
-            //    indices.Add(i + 1);
-            //    indices.Add(i + 2);
-            //    indices.Add(i + 3);
-            //}
-
-
-            InitializeShaders(vertecies.ToArray(), indices.ToArray());
+            InitializeShaders([.. vertecies], [.. indices]);
         }
 
         public void Dispose()

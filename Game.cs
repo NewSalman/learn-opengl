@@ -281,7 +281,7 @@ namespace MyDailyLife
             // We make the mouse cursor invisible and captured so we can have proper FPS-camera movement.
             CursorState = CursorState.Grabbed;
 
-            Cylinder = new(3.0f, 3.0f, 64);
+            Cylinder = new(1.0f, 3.0f, 64);
 
 
         }
