@@ -18,7 +18,7 @@ namespace MyDailyLife.Scenes.Components
         protected override Matrix4[] CreateModels()
         {
             Matrix4 model = Matrix4.CreateScale(0.2f);
-            model = model * Matrix4.CreateTranslation(LightPos);
+            model = model * Matrix4.CreateTranslation(Vector3.Zero);
 
             return [model];
         }

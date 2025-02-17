@@ -4,7 +4,7 @@ layout (location = 1) in vec3 aColor;
 
 uniform mat4 model;
 
-layout (std140) uniform Matrices {
+layout (std140) uniform CameraBlock {
 	mat4 view;
 	mat4 projection;
 } block_matrices;

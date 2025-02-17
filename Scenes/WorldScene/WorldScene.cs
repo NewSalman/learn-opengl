@@ -37,9 +37,8 @@ namespace MyDailyLife.Scenes.WorldScene
             //);
 
             Sun = new Light();
-            Sun.LightPos = Vector3.UnitZ * 2;
 
-            AddObject([new Cylinder(1.0f, 3.0f, 64, withCover: true)]);
+            AddObject([Sun, new Cylinder(1.0f, 3.0f, 64, withCover: true)]);
             LightUniform = new(5 * 3 * sizeof(float), UBO.LightPositionBlockPoint);
 
             LightUniform.BindDataVector(new UniformBufferData<Vector3>(3 * sizeof(float), 0, new Vector3(0.3f, 0.552f, 0.7f)));
@@ -68,7 +67,7 @@ namespace MyDailyLife.Scenes.WorldScene
         {
 
             LightPosition = CalculateLighOrbit();
-            //Sun.LightPos = LightPosition;
+            Sun.LightPos = LightPosition;
 
             LightUniform.BindDataVector(new UniformBufferData<Vector3>(3 * sizeof(float), 0, LightPosition));
 
