@@ -6,7 +6,7 @@ uniform mat4 model;
 //uniform mat4 view;
 //uniform mat4 projection;
 
-layout (std140) uniform Matrices {
+layout (std140) uniform CameraBlock {
 	mat4 view;
 	mat4 projection;
 } block_matrices;

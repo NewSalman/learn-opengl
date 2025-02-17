@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace MyDailyLife
 {
-    public class Constants
+    class Mouse
     {
-        public static int ClippedSpaceBlockIndex = 0;
-        public static string ClippedSpaceBlockKey = "Matrices";
     }
 }

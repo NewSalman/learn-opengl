@@ -27,13 +27,41 @@ namespace MyDailyLife.Shaders
             TextureUnit.Texture13,
             TextureUnit.Texture14,
             TextureUnit.Texture15,
+            TextureUnit.Texture16,
+            TextureUnit.Texture17,
+            TextureUnit.Texture18,
+            TextureUnit.Texture19,
+            TextureUnit.Texture20,
+            TextureUnit.Texture21,
+            TextureUnit.Texture22,
+            TextureUnit.Texture23,
+            TextureUnit.Texture24,
+            TextureUnit.Texture25,
+            TextureUnit.Texture26,
+            TextureUnit.Texture27,
+            TextureUnit.Texture28,
+            TextureUnit.Texture29,
+            TextureUnit.Texture30,
+            TextureUnit.Texture31
         ];
 
-        public Texture[] Textures { get; private set; }
+        private int MaxTextureUnit { get; set; }
+        public Texture[] Textures { get; set; }
+        public TextureShader(string vertexPath, string fragmentPath) : base(vertexPath, fragmentPath)
+        {
+            CheckMaxTextureUnit();
+
+            Textures = [];
+        }
+
         public TextureShader(string vertexPath, string fragmentPath, Texture[] textures) : base(vertexPath, fragmentPath)
         {
-            if (textures.Length > 16) throw new OverflowException("max texture unit now is only 16");
             Textures = textures;
+        }
+
+        private void CheckMaxTextureUnit()
+        {
+            MaxTextureUnit = GL.GetInteger(GetPName.MaxTextureUnits);
         }
 
         private void Activate()

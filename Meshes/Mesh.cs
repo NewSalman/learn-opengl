@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Xml.Linq;
 using MyDailyLife.Extension;
+using MyDailyLife.Scenes;
 using MyDailyLife.Shaders;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
@@ -10,9 +11,10 @@ namespace MyDailyLife.Meshes
     public enum BufferBinding
     {
         Vertices_Only,
-        Vertices_Normal,
-        Vertices_Normal_Color,
-        Vertices_Normal_Texture_Coordinate,
+        Vertices_Normals,
+        Vertices_Colors,
+        Vertices_Normals_Colors,
+        Vertices_Normals_Texture_Coordinates,
     }
 
     public class Vertex(Vector3 vertex, Vector3 normal)
@@ -37,7 +39,6 @@ namespace MyDailyLife.Meshes
         public Shader Shader { get; set; }
         protected Vertex[] Vertecies {  get; set; }
         public uint[] Indices { get; set; } = [];
-
         protected float[] Buffer { get; set; }
 
         public Mesh(Vertex[] data, uint[] indices, Shader shader)
@@ -69,7 +70,7 @@ namespace MyDailyLife.Meshes
 
             if (data[0] is TextureVertex)
             {
-                EnableVertexAttrib(BufferBinding.Vertices_Normal_Texture_Coordinate);
+                EnableVertexAttrib(BufferBinding.Vertices_Normals_Texture_Coordinates);
             } else
             {
                 EnableVertexAttrib();
@@ -90,6 +91,20 @@ namespace MyDailyLife.Meshes
 
             EnableVertexAttrib(bufferBinding);
 
+        }
+
+        public Mesh(Geometry geometry)
+        {
+            Buffer = geometry.Buffer;
+            Indices = geometry.Indices;
+
+            CreateVAO();
+
+            CreateVBO();
+
+            CreateEBO();
+
+            EnableVertexAttrib(geometry.BufferBinding);
         }
 
         protected override void CreateVAO()
@@ -115,13 +130,13 @@ namespace MyDailyLife.Meshes
             }
         }
 
-        protected override void EnableVertexAttrib(BufferBinding binding = BufferBinding.Vertices_Normal_Color)
+        protected override void EnableVertexAttrib(BufferBinding binding = BufferBinding.Vertices_Normals_Colors)
         {
             int stride = 9 * sizeof(float);
 
             switch (binding)
             {
-                case BufferBinding.Vertices_Normal_Color:
+                case BufferBinding.Vertices_Normals_Colors:
                     GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
                     GL.EnableVertexAttribArray(0);
 
@@ -132,7 +147,7 @@ namespace MyDailyLife.Meshes
                     GL.EnableVertexAttribArray(2);
                     break;
 
-                case BufferBinding.Vertices_Normal_Texture_Coordinate:
+                case BufferBinding.Vertices_Normals_Texture_Coordinates:
                     GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
                     GL.EnableVertexAttribArray(0);
 
@@ -143,7 +158,7 @@ namespace MyDailyLife.Meshes
                     GL.EnableVertexAttribArray(2);
                     break;
 
-                case BufferBinding.Vertices_Normal:
+                case BufferBinding.Vertices_Normals:
                     stride = 6 * sizeof(float);
 
                     GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
@@ -152,6 +167,16 @@ namespace MyDailyLife.Meshes
                     GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
                     GL.EnableVertexAttribArray(1);
                     break;
+
+                case BufferBinding.Vertices_Colors:
+                    stride = 6 * sizeof(float);
+                    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
+                    GL.EnableVertexAttribArray(0);
+
+                    GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
+                    GL.EnableVertexAttribArray(1);
+                    break;
+
 
                 case BufferBinding.Vertices_Only:
                     stride = 3 * sizeof(float);
@@ -166,20 +191,20 @@ namespace MyDailyLife.Meshes
             GL.BindVertexArray(0);
         }
 
-        public void ActivateUBO(string name, int index)
-        {
-            EnableUBOblock(name, index);
-        }
+        //public void ActivateUBO(string name, int index)
+        //{
+        //    EnableUBOblock(name, index);
+        //}
 
 
-        protected override void EnableUBOblock(string name, int index)
-        {
-            Shader.Use();
+        //protected override void EnableUBOblock(string name, int index)
+        //{
+        //    Shader.Use();
 
-            int uniformBlockIndex = Shader.GetUniformBlockIndex(name);
+        //    int uniformBlockIndex = Shader.GetUniformBlockIndex(name);
 
-            Shader.SetUniformBlockBinding(uniformBlockIndex, index);
-        }
+        //    Shader.SetUniformBlockBinding(uniformBlockIndex, index);
+        //}
 
         private float[] MergeVec3F(Vertex[] data)
         {
@@ -232,7 +257,7 @@ namespace MyDailyLife.Meshes
 
         public void Dispose()
         {
-            Shader.Dispose();
+            Shader?.Dispose();
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
             GL.UseProgram(0);

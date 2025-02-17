@@ -1,19 +1,12 @@
-﻿using System.Diagnostics;
-using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using MyDailyLife.Shaders;
-using MyDailyLife.Meshes;
-using MyDailyLife.Objects;
-using System.Runtime.InteropServices;
 using ErrorCode = OpenTK.Graphics.OpenGL4.ErrorCode;
-using System.Reflection.Metadata;
-using System.Xml.Linq;
-using System.Collections.Generic;
-using System.Transactions;
-using System.Reflection;
+using MyDailyLife.Constants;
+using MyDailyLife.Scenes.WorldScene;
+using MyDailyLife.Scenes;
 
 namespace MyDailyLife
 {
@@ -23,72 +16,26 @@ namespace MyDailyLife
         public int Height;
         public string Title;
     }
-    public class Game(GameArgs args) : GameWindow(GameWindowSettings.Default, new NativeWindowSettings() { ClientSize = (args.Width, args.Height), Title = args.Title })
+    public class Game : GameWindow
     {
-    
-        //private Texture _texture;
-        //private Texture _texture1;
 
-        private float speed = 3.0f;
         private double _time = 0.0;
         private double _lastime = 0.0;
         private double _deltaTime = 0.0;
 
-        private Camera _camera;
-        private bool _firstMove = true;
-        private Vector2 _lastPosition;
-
-        private float _sensitivity = 0.5f;
-
-        //private Mesh LightningSource;
-        private Shader LightningShader;
-
-        private Mesh LightCubeMesh;
-        //private Shader LightCubeShader;
-
-        //private Shader Shader;
-        private Mesh CubeMesh;
-
-        private Mesh Circle;
-        private Shader CircleShader;
-
-        private Vector3 LightPos = new(1.2f, 1.0f, 2.0f);
-
+        private float WindowRatio { get; set; }
+        private GameArgs Args { get; set; }
         private int Ubo { get; set; }
         private int UboSize {  get; set; }
 
-        private float LightAngle = 0.0f;
+        private readonly List<Scene> Scenes = new();
+        private Scene? SelectedScene;
 
-
-        private Dictionary<string, Vector3> LightningValue = new();
-
-        private Matrix4 LightCubeModel;
-
-        private Cylinder Cylinder;
-
-
-        private Vector3 UpdateLightPosition()
+        public Game(GameArgs args) : base(GameWindowSettings.Default, new NativeWindowSettings() { ClientSize = (args.Width, args.Height), Title = args.Title })
         {
-            LightAngle += 4.0f * (float)_deltaTime * speed;
-
-            if(LightAngle > 360.0f)
-            {
-                LightAngle -= 360.0f;
-            }
-
-            float orbitRadius = 2.0f;
-
-            float radius = MathHelper.DegreesToRadians(LightAngle);
-
-            float lightX = orbitRadius * (float)MathHelper.Cos(radius);
-            float lightZ = orbitRadius * (float)MathHelper.Sin(radius);
-
-            float lightY = 1.0f;
-
-            return new Vector3(lightX, lightY, lightZ);
-
+            Args = args;
+            WindowRatio = (float)(Size.X / Size.Y);
         }
-
 
         protected override void OnLoad()
         {
@@ -96,6 +43,8 @@ namespace MyDailyLife
             
 
             GL.ClearColor(new Color4(0.2f, 0.3f, 0.3f, 1.0f));
+
+            Scene worldScene = new WorldScene(WindowRatio);
 
             //Vector3 sourceColor = new(1.0f, 1.0f, 1.0f);
 
@@ -125,83 +74,6 @@ namespace MyDailyLife
 
             //        ];
 
-            //Vertex[] lightningVertecies = [
-            //        new([-0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-            //        new([0.5f, -0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-            //        new([0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-            //        new([-0.5f, 0.5f, 0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-
-            //        new([-0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-            //        new([0.5f, -0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-            //        new([0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-            //        new([-0.5f, 0.5f, -0.5f], normals: [1.0f, 1.0f, 1.0f], color: sourceColor),
-            //];
-
-
-            //Vertex[] cubeVertecies = [
-            //     // rear face
-            //        new([-0.5f, -0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [0.0f, 0.0f]),
-            //        new([0.5f, -0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [1.0f, 0.0f]),
-            //        new([0.5f, 0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [1.0f, 1.0f]),
-
-            //        new([0.5f, 0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [1.0f, 1.0f]),
-            //        new([-0.5f, 0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [0.0f, 1.0f]),
-            //        new([-0.5f, -0.5f, -0.5f], [0.0f, 0.0f, -1.0f], [0.0f, 0.0f]),
-
-
-            //        // front face
-            //        new([-0.5f, -0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [0.0f, 0.0f]),
-            //        new([0.5f, -0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [1.0f, 0.0f]),
-            //        new([0.5f, 0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [1.0f, 1.0f]),
-
-            //        new([0.5f, 0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [1.0f, 1.0f]),
-            //        new([-0.5f, 0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [0.0f, 1.0f]),
-            //        new([-0.5f, -0.5f, 0.5f], [0.0f, 0.0f, 1.0f], [0.0f, 0.0f]),
-
-
-            //        // left face
-            //        new([-0.5f, -0.5f, -0.5f], [-1.0f, 0.0f, 0.0f], [0.0f, 0.0f]),
-            //        new([-0.5f, -0.5f, 0.5f], [-1.0f, 0.0f, 0.0f], [1.0f, 0.0f]),
-            //        new([-0.5f, 0.5f, 0.5f], [-1.0f, 0.0f, 0.0f], [1.0f, 1.0f]),
-
-            //        new([-0.5f, 0.5f, 0.5f], [-1.0f, 0.0f, 0.0f], [1.0f, 1.0f]),
-            //        new([-0.5f, 0.5f, -0.5f], [-1.0f, 0.0f, 0.0f], [0.0f, 1.0f]),
-            //        new([-0.5f, -0.5f, -0.5f], [-1.0f, 0.0f, 0.0f], [0.0f, 0.0f]),
-
-            //        // right face
-            //        new([0.5f, -0.5f, 0.5f], [1.0f, 0.0f, 0.0f], [0.0f, 0.0f]),
-            //        new([0.5f, -0.5f, -0.5f], [1.0f, 0.0f, 0.0f], [1.0f, 0.0f]),
-            //        new([0.5f, 0.5f, 0.5f], [1.0f, 0.0f, 0.0f], [0.0f, 1.0f]),
-
-            //        new([0.5f, 0.5f, 0.5f], [1.0f, 0.0f, 0.0f], [0.0f, 1.0f]),
-            //        new([0.5f, 0.5f, -0.5f], [1.0f, 0.0f, 0.0f], [1.0f, 1.0f]),
-            //        new([0.5f, -0.5f, -0.5f], [1.0f, 0.0f, 0.0f], [1.0f, 0.0f]),
-
-            //        // top face
-            //        new([-0.5f, 0.5f, 0.5f], [0.0f, 1.0f, 0.0f], [0.0f, 0.0f]),
-            //        new([0.5f, 0.5f, 0.5f], [0.0f, 1.0f, 0.0f], [1.0f, 0.0f]),
-            //        new([0.5f, 0.5f, -0.5f], [0.0f, 1.0f, 0.0f], [1.0f, 1.0f]),
-
-            //        new([0.5f, 0.5f, -0.5f], [0.0f, 1.0f, 0.0f], [1.0f, 1.0f]),
-            //        new([-0.5f, 0.5f, -0.5f], [0.0f, 1.0f, 0.0f], [0.0f, 1.0f]),
-            //        new([-0.5f, 0.5f, 0.5f], [0.0f, 1.0f, 0.0f], [0.0f, 0.0f]),
-
-            //        // bottom face
-            //        new([-0.5f, -0.5f, 0.5f], [0.0f, -1.0f, 0.0f], [0.0f, 0.0f]),
-            //        new([0.5f, -0.5f, 0.5f], [0.0f, -1.0f, 0.0f], [1.0f, 0.0f]),
-            //        new([0.5f, -0.5f, -0.5f], [0.0f, -1.0f, 0.0f], [1.0f, 1.0f]),
-
-            //        new([0.5f, -0.5f, -0.5f], [0.0f, -1.0f, 0.0f], [1.0f, 1.0f]),
-            //        new([-0.5f, -0.5f, -0.5f], [0.0f, -1.0f, 0.0f], [0.0f, 1.0f]),
-            //        new([-0.5f, -0.5f, 0.5f], [0.0f, -1.0f, 0.0f], [0.0f, 0.0f]),
-            //];
-
-            //uint[] cubeindices =
-            //{
-            //    // front
-            //    0, 2, 1,
-            //    1, 3, 0,
-            //};
 
 
             //// translate the light position and scale it down
@@ -262,132 +134,26 @@ namespace MyDailyLife
             //LightningShader.SetVec3(LightningValue);
             //LightningShader.SetFloat("material.shininess", 32.0f);
 
-            _camera = new Camera(Vector3.UnitZ * 3, (float)(Size.X / Size.Y));
+            Scenes.Add(worldScene);
 
-            CreateCircleVertecies();
+            SelectedScene = Scenes[0];
 
+            //Ubo = GL.GenBuffer();
+            //UboSize = 2 * (sizeof(float) * (4 * 4));
 
-            Ubo = GL.GenBuffer();
-            UboSize = 2 * (sizeof(float) * (4 * 4));
+            //GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
+            //GL.BufferData(BufferTarget.UniformBuffer, UboSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
 
-            GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
-            GL.BufferData(BufferTarget.UniformBuffer, UboSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
-            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
-
-            GL.BindBufferRange(BufferRangeTarget.UniformBuffer, Constants.ClippedSpaceBlockIndex, Ubo, 0, UboSize);
+            //GL.BindBufferRange(BufferRangeTarget.UniformBuffer, UBO.CameraBlockPoint, Ubo, 0, UboSize);
 
             GL.Enable(EnableCap.DepthTest);
 
             // We make the mouse cursor invisible and captured so we can have proper FPS-camera movement.
             CursorState = CursorState.Grabbed;
 
-            Cylinder = new(1.0f, 3.0f, 64);
-
 
         }
-
-
-        private void CreateCircleVertecies()
-        {
-            //[
-            //            // rear
-            //            new(new(-0.5f, -0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
-            //            new(new(0.5f, -0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
-            //            new(new(0.5f, 0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
-
-            //            new(new(0.5f, 0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
-            //            new(new(-0.5f, 0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
-            //            new(new(-0.5f, -0.5f, -0.5f), new(0.0f, 0.0f, -1.0f), new(1.0f)),
-
-            //            // front
-            //            new(new(-0.5f, -0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
-            //            new(new(0.5f, -0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
-            //            new(new(0.5f, 0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
-
-            //            new(new(0.5f, 0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
-            //            new(new(-0.5f, 0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
-            //            new(new(-0.5f, -0.5f, 0.5f), new(0.0f, 0.0f, 1.0f), new(1.0f)),
-
-            //            //left
-            //            new(new(-0.5f, -0.5f, -0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
-            //            new(new(-0.5f, -0.5f, 0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
-            //            new(new(-0.5f, 0.5f, 0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
-
-            //            new(new(-0.5f, 0.5f, 0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
-            //            new(new(-0.5f, 0.5f, -0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
-            //            new(new(-0.5f, -0.5f, -0.5f), new(-1.0f, 0.0f, 0.0f), new(1.0f)),
-
-            //            // right
-            //            new(new(0.5f, -0.5f, 0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
-            //            new(new(0.5f, -0.5f, -0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
-            //            new(new(0.5f, 0.5f, 0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
-
-            //            new(new(0.5f, 0.5f, 0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
-            //            new(new(0.5f, 0.5f, -0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
-            //            new(new(0.5f, -0.5f, -0.5f), new(1.0f, 0.0f, 0.0f), new(1.0f)),
-
-            //            // top
-            //            new(new(-0.5f, 0.5f, 0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
-            //            new(new(0.5f, 0.5f, 0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
-            //            new(new(0.5f, 0.5f, -0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
-
-            //            new(new(0.5f, 0.5f, -0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
-            //            new(new(-0.5f, 0.5f, -0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
-            //            new(new(-0.5f, 0.5f, 0.5f), new(0.0f, 1.0f, 0.0f), new(1.0f)),
-
-            //            // bottom
-            //            new(new(-0.5f, -0.5f, 0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
-            //            new(new(0.5f, -0.5f, 0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
-            //            new(new(0.5f, -0.5f, -0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
-
-            //            new(new(0.5f, -0.5f, -0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
-            //            new(new(-0.5f, -0.5f, -0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
-            //            new(new(-0.5f, -0.5f, 0.5f), new(0.0f, -1.0f, 0.0f), new(1.0f)),
-
-            //        ],
-            //        [
-            //            0, 2, 1,
-            //            1, 3, 0,
-            //        ],
-
-            //CircleShader = new BasicColorShader("basic/Circle/circle.vert", "basic/Circle/circle.frag");
-
-            //Matrix4[] models = [Matrix4.Identity];
-
-
-
-            // define the center point
-            // the plus one is for the center of point at x = 0.0f, y = 0.0f, z = 0.0f;
-            //int numberOfTriangle = 64;
-
-
-            //Circle = new Circle(vertecies, CircleShader);
-            //Circle.Indices = [0, 1, 2];
-
-            //Circle.OnDraw = (deltaTime) => 
-            //{
-            //    for (int i = 0; i < models.Length; i++)
-            //    {
-            //        CircleShader.SetMatrix4("model", models[i]);
-
-            //        GL.DrawArrays(PrimitiveType.TriangleFan, 0, numberOfTriangle);
-            //    }
-            //};
-
-            // set the indices
-            //Circle.Indices = [0, 2, 1, 1, 3, 0,];
-
-
-        }
-
-        
-
-        //private void RenderCircle()
-        //{
-
-
-        //    Circle.Render(_deltaTime);
-        //}
 
 
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -400,18 +166,20 @@ namespace MyDailyLife
             _time += args.Time;
             _deltaTime = _time - _lastime;
 
-            Matrix4 viewMatrix = _camera.GetViewMatrix();
-            Matrix4 projectionMatrix = _camera.GetProjectionMatrix();
+            //Matrix4 viewMatrix = _camera.GetViewMatrix();
+            //Matrix4 projectionMatrix = _camera.GetProjectionMatrix();
 
-            GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
-            GL.BufferSubData(BufferTarget.UniformBuffer, 0, sizeof(float) * 4 * 4, [Matrix4.Transpose(viewMatrix)]);
-            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+            //GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
+            //GL.BufferSubData(BufferTarget.UniformBuffer, 0, sizeof(float) * 4 * 4, [Matrix4.Transpose(viewMatrix)]);
+            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
             
-            GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
-            GL.BufferSubData(BufferTarget.UniformBuffer, sizeof(float) * 4 * 4, sizeof(float) * 4 * 4, [Matrix4.Transpose(projectionMatrix)]);
-            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+            //GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
+            //GL.BufferSubData(BufferTarget.UniformBuffer, sizeof(float) * 4 * 4, sizeof(float) * 4 * 4, [Matrix4.Transpose(projectionMatrix)]);
+            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
 
+            SelectedScene?.Render(_deltaTime);
 
+            //SceneObjects[0].Render(_deltaTime);
 
             //Vector3 lightPosition = UpdateLightPosition();
 
@@ -430,7 +198,7 @@ namespace MyDailyLife
             //LightCubeMesh.Render(_deltaTime);
 
 
-            Cylinder.Render(_deltaTime);
+            //Cylinder.Render(_deltaTime);
 
 
 
@@ -452,34 +220,27 @@ namespace MyDailyLife
         {
             base.OnUpdateFrame(args);
 
-            ListenInputKey((float)_deltaTime);
-            ListenMouseEvent();
-        }
+            SelectedScene?.OnUpdateFrame(args);
 
-        private void ListenMouseEvent()
-        {
-            MouseState mouse = MouseState;
-            if (_firstMove)
+            if (!IsFocused) return;
+
+            KeyboardState inputKey = KeyboardState;
+
+#if DEBUG
+            if (inputKey.IsKeyDown(Keys.Escape))
             {
-                _lastPosition = new(mouse.X, mouse.Y);
-                _firstMove = false;
+                Close();
             }
-            else
-            {
-                // Calculate the offset of the mouse position
-                Vector2 deltaPosition = new(mouse.X - _lastPosition.X, mouse.Y - _lastPosition.Y);
-                _lastPosition = new Vector2(mouse.X, mouse.Y);
+#endif
+            SelectedScene?.ListenKeyboardInput(inputKey);
 
-                _camera.Pitch += -deltaPosition.Y * _sensitivity;
-                _camera.Yaw -= -deltaPosition.X * _sensitivity;
-            }
+            SelectedScene?.ListenMouseState(MouseState);
         }
-
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
             base.OnMouseWheel(e);
 
-            _camera.FOV -= e.OffsetY;
+            SelectedScene?.ListenMouseWheelEvent(e);
         }
 
         protected override void OnFramebufferResize(FramebufferResizeEventArgs e)
@@ -509,7 +270,11 @@ namespace MyDailyLife
             //LightningSource.Dispose();
             //LightCubeMesh.Dispose();
             //CubeMesh.Dispose();
-            Cylinder.Dispose();
+
+            for(int i = 0; i < Scenes.Count; i++)
+            {
+                Scenes[i].Dispose();
+            }
 
             GL.DeleteProgram(0);
 
@@ -521,49 +286,7 @@ namespace MyDailyLife
             base.OnResize(e);
 
             GL.Viewport(0, 0, Size.X, Size.Y);
-            _camera.AspectRatio = Size.X / (float)Size.Y;
-        }
-
-        private void ListenInputKey(float time)
-        {
-            if (!IsFocused) return;
-
-            KeyboardState inputKey = KeyboardState;
-
-            if(inputKey.IsKeyDown(Keys.Escape))
-            {
-                Close();
-            }
-
-            if (inputKey.IsKeyDown(Keys.W))
-            {
-                _camera.Position += _camera.Front * speed * time;
-            }
-
-            if (inputKey.IsKeyDown(Keys.S))
-            {
-                _camera.Position -= _camera.Front * speed * time;
-            }
-
-            if (inputKey.IsKeyDown(Keys.A))
-            {
-                _camera.Position -= _camera.Right * speed * time;
-            }
-
-            if (inputKey.IsKeyDown(Keys.D))
-            {
-                _camera.Position += _camera.Right * speed * time;
-            }
-
-            if (inputKey.IsKeyDown(Keys.Space))
-            {
-                _camera.Position += _camera.Up * speed * time;
-            }
-
-            if (inputKey.IsKeyDown(Keys.LeftShift))
-            {
-                _camera.Position -= _camera.Up * speed * time;
-            }
+            SelectedScene?.OnWindowResized(Size.X / (float)Size.Y);
         }
     }
 }

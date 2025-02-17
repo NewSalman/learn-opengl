@@ -21,5 +21,6 @@
 
 	<ItemGroup>
 	  <Folder Include="Assets\Shaders\lightning\" />
+	  <Folder Include="Scenes\WorldScene\LightSource\" />
 	</ItemGroup>
 </Project>

@@ -23,8 +23,6 @@ namespace MyDailyLife.Meshes
 
         abstract protected void EnableVertexAttrib(BufferBinding binding);
 
-        abstract protected void EnableUBOblock(string name, int index);
-
         abstract public void Render(double deltaTime);
     }
 }

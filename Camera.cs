@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 // Learn it here
 //https://opentk.net/learn/chapter1/9-camera.html?tabs=input-opentk4%2Cdelta-time-input-opentk4%2Ccursor-mode-opentk4%2Cmouse-move-opentk4%2Cscroll-opentk4
@@ -29,7 +30,6 @@ namespace MyDailyLife
 
         // The field of view of the camera
         private float _fov = MathHelper.PiOver2;
-
 
         // The position of camera
         public Vector3 Position { get; set; }   

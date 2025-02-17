@@ -123,37 +123,10 @@ namespace MyDailyLife.Shaders
             GL.Uniform1(_uniformLocations[name], value);
         }
 
-        [Obsolete("this method will be replace later")]
-        public void SetMatrix4(Dictionary<string, Matrix4> uniforms)
-        {
-            if (uniforms.Count <= 0) return;
-
-            GL.UseProgram(Handle);
-            foreach(KeyValuePair<string, Matrix4> uniform in uniforms)
-            {
-                Matrix4 value = uniform.Value;
-
-                GL.UniformMatrix4(_uniformLocations[uniform.Key], true , ref value);
-            }
-        }
-
         public void SetVec3(string name, Vector3 value)
         {
             GL.UseProgram(Handle);
             GL.Uniform3(_uniformLocations[name], value);
-        }
-
-        [Obsolete("this method will be replace later")]
-        public void SetVec3(Dictionary<string, Vector3> uniforms)
-        {
-            if (uniforms.Count <= 0) return;
-
-            GL.UseProgram(Handle);
-
-            foreach (KeyValuePair<string, Vector3> uniform in uniforms)
-            {
-                GL.Uniform3(_uniformLocations[uniform.Key], uniform.Value);
-            }
         }
 
         public int GetAttribLocation(string name)
