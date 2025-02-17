@@ -67,20 +67,20 @@ namespace MyDailyLife.UniformBuffers
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
         }
 
-        public void BindDataMatrices(List<UniformBufferData<Matrix4>> uniformBuffers)
+        public void BindDataMatrices(UniformBufferData<Matrix4>[] uniformBuffers)
         {
             GL.BindBuffer(BufferTarget.UniformBuffer, Buffer);
-            for(int i = 0; i < uniformBuffers.Count; i++)
+            for(int i = 0; i < uniformBuffers.Length; i++)
             {
                 BindDataAndTransposeMatrix(uniformBuffers[i].Offset, uniformBuffers[i].Size, uniformBuffers[i].Data);
             }
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
         }
 
-        public void BindDataVectors(List<UniformBufferData<Vector3>> uniformBuffers)
+        public void BindDataVectors(UniformBufferData<Vector3>[] uniformBuffers)
         {
             GL.BindBuffer(BufferTarget.UniformBuffer, Buffer);
-            for (int i = 0; i < uniformBuffers.Count; i++)
+            for (int i = 0; i < uniformBuffers.Length; i++)
             {
                 GL.BufferSubData(
                     BufferTarget.UniformBuffer,

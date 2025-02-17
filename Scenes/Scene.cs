@@ -1,4 +1,5 @@
-﻿using MyDailyLife.UniformBuffers;
+﻿using MyDailyLife.Constants;
+using MyDailyLife.UniformBuffers;
 using MyDailyLife.UniformBuffers.Types;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
@@ -13,8 +14,9 @@ namespace MyDailyLife.Scenes
         private bool _firstMove = true;
         private Vector2 _lastPosition;
 
-        protected abstract UniformBuffer CameraUniform { get; set; }
-        protected abstract Camera MainCamera { get; set; }
+        private UniformBuffer CameraUniform { get; set; }
+        private UniformBufferData<Matrix4>[] CameraBufferData = new UniformBufferData<Matrix4>[2]; 
+        protected Camera MainCamera { get; set; }
 
         private double _deltaTime;
         protected double DeltaTime
@@ -42,6 +44,17 @@ namespace MyDailyLife.Scenes
             }
         }
 
+        public Scene(float aspectRatio)
+        {
+
+            MainCamera = new Camera(Vector3.UnitZ * 3, aspectRatio);
+
+            CameraUniform = new(CameraBufferInfo.Size, UBO.CameraBlockPoint);
+            CameraBufferData[0] = new UniformBufferData<Matrix4>(CameraBufferInfo.EachSize, CameraBufferInfo.ViewOffset, MainCamera.GetViewMatrix());
+            CameraBufferData[1] = new UniformBufferData<Matrix4>(CameraBufferInfo.EachSize, CameraBufferInfo.ProjectionOffset, MainCamera.GetProjectionMatrix());
+
+        }
+
 
         public void AddObject(Drawable obj)
         {
@@ -56,8 +69,12 @@ namespace MyDailyLife.Scenes
         public virtual void Render(double deltaTime)
         {
             _deltaTime = deltaTime;
+            CameraBufferData[0].Data = MainCamera.GetViewMatrix();
+            CameraBufferData[1].Data = MainCamera.GetProjectionMatrix();
 
-            for(int i = 0; i < _objects.Count; i++)
+            CameraUniform.BindDataMatrices([..CameraBufferData]);
+
+            for (int i = 0; i < _objects.Count; i++)
             {
                 _objects[i].Render(deltaTime);
             }
@@ -132,6 +149,7 @@ namespace MyDailyLife.Scenes
         protected virtual void Release()
         {
             _objects.ForEach((obj) => { obj.Dispose(); });
+            //CameraUniform.Dispose();
         }
         
         public void Dispose()

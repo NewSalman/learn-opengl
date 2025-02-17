@@ -20,39 +20,29 @@ namespace MyDailyLife.Scenes.WorldScene
         private UniformBuffer LightUniform;
 
         private Light Sun;
-        private float LightSize = 0.2f;
         private Vector3 LightPosition;
         private float Angle = 0.0f;
         private float Radius = 3.5f;
-        private float Speed = 2.0f;
 
-
-        protected override UniformBuffer CameraUniform { get; set; }
-        protected override Camera MainCamera { get; set; }
-
-
-
-        public WorldScene(float aspecRatio)
+        public WorldScene(float aspecRatio) : base(aspecRatio)
         {
             LightPosition = CalculateLighOrbit();
 
-            LightMaterial ligthMat = new LightMaterial(
-                position: LightPosition,
-                viewPosition: new(),
-                ambient: new(0.2f, 0.2f, 0.2f),
-                diffuse: new(0.5f, 0.5f, 0.5f),
-                specular: new(1.0f, 1.0f, 1.0f)
-            );
+            //LightMaterial ligthMat = new LightMaterial(
+            //    position: LightPosition,
+            //    viewPosition: new(),
+            //    ambient: new(0.2f, 0.2f, 0.2f),
+            //    diffuse: new(0.5f, 0.5f, 0.5f),
+            //    specular: new(1.0f, 1.0f, 1.0f)
+            //);
 
             Sun = new Light();
-            AddObject([Sun, new Cylinder(1.0f, 3.0f, 64, withCover: true)]);
+            Sun.LightPos = Vector3.UnitZ * 2;
 
-            MainCamera = new Camera(Vector3.UnitZ * 3, aspecRatio);
+            AddObject([new Cylinder(1.0f, 3.0f, 64, withCover: true)]);
+            LightUniform = new(5 * 3 * sizeof(float), UBO.LightPositionBlockPoint);
 
-            LightUniform = new(3 * 4 * sizeof(float), UBO.LightPositionBlockPoint);
-            CameraUniform = new(CameraBufferInfo.Size, UBO.CameraBlockPoint);
-
-            //LightUniform.BindDataVector(new UniformBufferData<Vector3>(3 * sizeof(float), 0, new Vector3(0.3f, 0.552f, 0.7f)));
+            LightUniform.BindDataVector(new UniformBufferData<Vector3>(3 * sizeof(float), 0, new Vector3(0.3f, 0.552f, 0.7f)));
         }
 
         private Vector3 CalculateLighOrbit()
@@ -78,16 +68,10 @@ namespace MyDailyLife.Scenes.WorldScene
         {
 
             LightPosition = CalculateLighOrbit();
-            Sun.LightPos = LightPosition;
-
-            //LightUniform.BindDataVector(new UniformBufferData<Vector3>(3 * sizeof(float), 0, 
-            //    new Vector3(0.5f * (float)MathHelper.Sin(deltaTime))));
+            //Sun.LightPos = LightPosition;
 
             LightUniform.BindDataVector(new UniformBufferData<Vector3>(3 * sizeof(float), 0, LightPosition));
-            CameraUniform.BindDataMatrices([
-                new UniformBufferData<Matrix4>(CameraBufferInfo.EachSize, CameraBufferInfo.ViewOffset, MainCamera.GetViewMatrix()),
-                new UniformBufferData<Matrix4>(CameraBufferInfo.EachSize, CameraBufferInfo.ProjectionOffset, MainCamera.GetProjectionMatrix())
-            ]);
+
 
             base.Render(deltaTime);
         }

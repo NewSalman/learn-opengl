@@ -32,5 +32,5 @@ void main()
 	//vec3 diffuse = light.diffuse * (diff * material.diffuse);
 
 	//vec3 result = (diffuse + ambient) * material.ambient; 
-	outputColor = vec4(1.0f);
+	outputColor = vec4(light.position, 1.0f);
 }
