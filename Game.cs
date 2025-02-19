@@ -46,61 +46,7 @@ namespace MyDailyLife
 
             Scene worldScene = new WorldScene(WindowRatio);
 
-            //Vector3 sourceColor = new(1.0f, 1.0f, 1.0f);
-
-            //uint[] ligthingIndices = [
-            //            // back
-            //            0, 1, 2,
-            //            2, 3, 0,
-
-            //            // front
-            //            4, 5, 6,
-            //            6, 7, 4,
-
-            //            // left
-            //            0, 4, 7,
-            //            7, 3, 0,
-
-            //            // right
-            //            1, 5, 6,
-            //            6, 2, 1,
-
-            //            // top
-            //            3, 7, 6,
-            //            6, 2, 3,
-
-            //            0, 4, 5,
-            //            5, 1, 0
-
-            //        ];
-
-
-
-            //// translate the light position and scale it down
-
-            //LightCubeModel = Matrix4.Identity;
-
-            ////LightCubeModel = LightCubeModel * Matrix4.CreateTranslation(LightPos);
-
-            //LightCubeModel = LightCubeModel * Matrix4.CreateScale(0.2f);
-
-            //LightCubeShader = new BasicColorShader("lightning/light_cube.vert", "lightning/light_cube.frag");
-            //LightCubeMesh = new Cube(
-            //    cubeVertecies,
-            //    cubeindices,
-            //    LightCubeShader,
-            //    models: [LightCubeModel]
-            //);
-
-
-
-
-            ////LightningSource = new CubeEBO(
-            ////    vertecies: lightningVertecies,
-            ////    indices: ligthingIndices,
-            ////    shader: LightningShader,
-            ////    [new(0.0f, 0.0f, 0.0f)]
-            ////);
+          
 
             ////// Load Texture
             ////_texture = new("Assets/Textures/container.jpg");
@@ -109,43 +55,9 @@ namespace MyDailyLife
 
 
             ////Shader = new TextureShader("shader.vert", "shader.frag", [_texture, _texture1]);
-
-            ////Matrix4 LightModel = Matrix4.CreateRotationY(totalDegres);
-            ////Matrix4 translate = Matrix4.CreateTranslation(Positions[i]);
-
-            ////LightModel *= translate;
-
-            //LightningShader = new BasicColorShader("basic/basic.vert", "basic/basic.frag");
-            //CubeMesh = new Cube(cubeVertecies, cubeindices, LightningShader, [Matrix4.Identity]);
-
-            //LightningValue.Add("lightPos", UpdateLightPosition());
-            ////LightningValue.Add("objectColor", new(1.0f, 0.5f, 0.31f));
-            ////LightningValue.Add("lightColor", new(1.0f));
-            ///
-            //LightningValue.Add("material.ambient", new(1.0f, 0.5f, 0.31f));
-            //LightningValue.Add("material.diffuse", new(1.0f, 0.5f, 0.31f));
-            //LightningValue.Add("material.specular", new(0.5f, 0.5f, 0.5f));
-
-            //LightningValue.Add("light.ambient", new(0.2f));
-            //LightningValue.Add("light.diffuse", new(0.5f));
-            //LightningValue.Add("light.specular", new(1.0f));
-
-
-            //LightningShader.SetVec3(LightningValue);
-            //LightningShader.SetFloat("material.shininess", 32.0f);
-
             Scenes.Add(worldScene);
 
             SelectedScene = Scenes[0];
-
-            //Ubo = GL.GenBuffer();
-            //UboSize = 2 * (sizeof(float) * (4 * 4));
-
-            //GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
-            //GL.BufferData(BufferTarget.UniformBuffer, UboSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
-            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
-
-            //GL.BindBufferRange(BufferRangeTarget.UniformBuffer, UBO.CameraBlockPoint, Ubo, 0, UboSize);
 
             GL.Enable(EnableCap.DepthTest);
 
@@ -166,40 +78,7 @@ namespace MyDailyLife
             _time += args.Time;
             _deltaTime = _time - _lastime;
 
-            //Matrix4 viewMatrix = _camera.GetViewMatrix();
-            //Matrix4 projectionMatrix = _camera.GetProjectionMatrix();
-
-            //GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
-            //GL.BufferSubData(BufferTarget.UniformBuffer, 0, sizeof(float) * 4 * 4, [Matrix4.Transpose(viewMatrix)]);
-            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
-            
-            //GL.BindBuffer(BufferTarget.UniformBuffer, Ubo);
-            //GL.BufferSubData(BufferTarget.UniformBuffer, sizeof(float) * 4 * 4, sizeof(float) * 4 * 4, [Matrix4.Transpose(projectionMatrix)]);
-            //GL.BindBuffer(BufferTarget.UniformBuffer, 0);
-
             SelectedScene?.Render(_deltaTime);
-
-            //SceneObjects[0].Render(_deltaTime);
-
-            //Vector3 lightPosition = UpdateLightPosition();
-
-            //LightningShader.SetVec3("lightPos", lightPosition);
-            //LightningShader.SetVec3("viewPos", _camera.Position);
-
-            //CubeMesh.Render(_deltaTime);
-
-            //Matrix4.CreateScale(0.2f); // We scale the lamp cube down a bit to make it less dominant
-            //lampMatrix = lampMatrix * Matrix4.CreateTranslation(_lightPos);
-
-            //Matrix4 lightPosModel = Matrix4.CreateScale(0.2f);
-            //lightPosModel = lightPosModel * Matrix4.CreateTranslation(lightPosition);
-
-            //LightCubeShader.SetMatrix4("model", lightPosModel);
-            //LightCubeMesh.Render(_deltaTime);
-
-
-            //Cylinder.Render(_deltaTime);
-
 
 
             ErrorCode error = GL.GetError();
@@ -235,6 +114,8 @@ namespace MyDailyLife
             SelectedScene?.ListenKeyboardInput(inputKey);
 
             SelectedScene?.ListenMouseState(MouseState);
+
+            CursorState = SelectedScene?.MouseCursorState() ?? CursorState.Grabbed;
         }
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
@@ -275,8 +156,6 @@ namespace MyDailyLife
             {
                 Scenes[i].Dispose();
             }
-
-            GL.DeleteProgram(0);
 
             base.OnUnload();
         }

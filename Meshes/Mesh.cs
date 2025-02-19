@@ -41,58 +41,6 @@ namespace MyDailyLife.Meshes
         public uint[] Indices { get; set; } = [];
         protected float[] Buffer { get; set; }
 
-        public Mesh(Vertex[] data, uint[] indices, Shader shader)
-        {
-            Buffer = MergeVec3F(data);
-            Shader = shader;
-
-            CreateVAO();
-
-            CreateVBO();
-
-            CreateEBO();
-
-            EnableVertexAttrib();
-
-            Shader.Use();
-        }
-
-        public Mesh(Vertex[] data, uint[] indices)
-        {
-            Buffer = MergeVec3F(data);
-            Indices = indices;
-
-            CreateVAO();
-
-            CreateVBO();
-
-            CreateEBO();
-
-            if (data[0] is TextureVertex)
-            {
-                EnableVertexAttrib(BufferBinding.Vertices_Normals_Texture_Coordinates);
-            } else
-            {
-                EnableVertexAttrib();
-            }
-
-        }
-
-        public Mesh(float[] data, uint[] indices, BufferBinding bufferBinding)
-        {
-            Buffer = data;
-            Indices = indices;
-
-            CreateVAO();
-
-            CreateVBO();
-
-            CreateEBO();
-
-            EnableVertexAttrib(bufferBinding);
-
-        }
-
         public Mesh(Geometry geometry)
         {
             Buffer = geometry.Buffer;
@@ -148,6 +96,8 @@ namespace MyDailyLife.Meshes
                     break;
 
                 case BufferBinding.Vertices_Normals_Texture_Coordinates:
+                    stride = 8 * sizeof(float);
+
                     GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
                     GL.EnableVertexAttribArray(0);
 
@@ -189,63 +139,6 @@ namespace MyDailyLife.Meshes
 
 
             GL.BindVertexArray(0);
-        }
-
-        //public void ActivateUBO(string name, int index)
-        //{
-        //    EnableUBOblock(name, index);
-        //}
-
-
-        //protected override void EnableUBOblock(string name, int index)
-        //{
-        //    Shader.Use();
-
-        //    int uniformBlockIndex = Shader.GetUniformBlockIndex(name);
-
-        //    Shader.SetUniformBlockBinding(uniformBlockIndex, index);
-        //}
-
-        private float[] MergeVec3F(Vertex[] data)
-        {
-            float[] bufferData = [];
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                if (data is ColorVertex[])
-                {
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-                    ColorVertex vertex = data[i] as ColorVertex;
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
-
-                    bufferData = [.. bufferData, .. vertex!.Position.ToArray(), .. vertex.Normal.ToArray(), .. vertex.Color.ToArray()];
-                } else
-                {
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-                    TextureVertex vertex = data[i] as TextureVertex;
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
-
-                    bufferData = [.. bufferData, .. vertex!.Position.ToArray(), .. vertex.Normal.ToArray(), .. vertex.TextureCoordinate.ToArray()];
-
-
-                }
-            }
-
-            return bufferData;
-        }
-
-        protected float[] MergeArrays()
-        {
-            int bufferLength = 0;
-
-            float[] result = new float[bufferLength];
-
-            //for (int i = 0; i < Vertecies.Length; i++) 
-            //{
-            //    Vertecies[i].MergeVertex().CopyTo(result, Vertecies[i].Size * i);
-            //}
-
-            return result;
         }
 
         public override void Render(double deltaTime) 

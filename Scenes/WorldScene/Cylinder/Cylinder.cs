@@ -88,8 +88,25 @@ namespace MyDailyLife.Objects.Shape.Cylinder
 
         protected override void AfterObjectCreated()
         {
-            //SetMatrix("");
+            Dictionary<string, Vector3> materialVec = new();
+
+            //materialVec.Add("material.ambient", new(0.24725f, 0.1995f, 0.0745f));
+            //materialVec.Add("material.diffuse", new(0.75164f, 0.60648f, 0.22648f));
+
+            //materialVec.Add("material.diffuse", new Vector3(0.75164f, 0.60648f, 0.22648f));
+            materialVec.Add("material.specular", new(0.628281f, 0.555802f, 0.366065f));
+            UseProgram((shader) =>
+            {
+                //SetInt("material.diffuse", 0);
+                shader.ActivateTextures();
+
+                SetFloat("material.shininess", 0.4f);
+                
+                SetVectors3(materialVec);
+            });
+
         }
+
         protected override Matrix4[] CreateModels()
         {
             return [Matrix4.Identity];
@@ -97,7 +114,9 @@ namespace MyDailyLife.Objects.Shape.Cylinder
 
         protected override Shader CreateShader()
         {
-            return new BasicColorShader("Scenes/MainScene/cylinder/vert.glsl", "Scenes/MainScene/cylinder/frag.glsl");
+            Texture concreteTexture = new Texture("Concrete/concrete_diff.jpg");
+            TextureShader shader = new TextureShader("Shapes/Cylinder/vert.glsl", "Shapes/Cylinder/frag.glsl", [concreteTexture]);
+            return shader;
         }
 
         protected override void OnDraw(double DeltaTime)
@@ -151,47 +170,58 @@ namespace MyDailyLife.Objects.Shape.Cylinder
         {
             List<float> vertecies = [];
             List<uint> indices = [];
+            List<Vector2> textureCoordinate = [];
 
             List<float> x = new();
             List<float> y = new();
 
-            float height = 3.0f / 2.0f;
-            //Slices = 32;
-            //TopRadius = 2.0f;
-            //BottomRadius = 3.5f;
+            float height = Height / 2.0f;
 
 
             for (int i = 0; i <= Slices; i++)
             {
                 float angle = 2.0f * MathHelper.Pi * i / Slices;
 
-                x.Add((float)MathHelper.Cos(angle));
-                y.Add((float)MathHelper.Sin(angle));
+                float vertX = (float)MathHelper.Cos(angle);
+                float vertY = (float)MathHelper.Sin(angle);
+                x.Add(vertX);
+                y.Add(vertY);
+
+                Vector2 uv = new();
+
+                uv.X = 0.5f + ((float)MathHelper.Cos(angle) * 0.5f);
+                uv.Y = 0.5f + ((float)MathHelper.Sin(angle) * 0.5f);
+
+                textureCoordinate.Add(uv);
             }
 
             for (int i = 0; i <= Slices; i++)
             {
-                vertecies.AddRange([TopRadius * x[i], height, TopRadius * y[i], x[i], y[i], 0.0f]);
+                vertecies.AddRange([TopRadius * x[i], height, TopRadius * y[i], x[i], y[i], 0.0f, (float)i / Slices, 1.0f]);
             }
 
             for (int i = 0; i <= Slices; i++)
             {
-                vertecies.AddRange([BottomRadius * x[i], -height, BottomRadius * y[i], x[i], y[i], 0.0f]);
+                vertecies.AddRange([BottomRadius * x[i], -height, BottomRadius * y[i], x[i], y[i], 0.0f, (float)i / Slices, 0.0f]);
             }
 
 
-            vertecies.AddRange([TopRadius * 0.0f, height, TopRadius * 0.0f, 0.0f, 1.0f, 0.0f]);
+            vertecies.AddRange([0.0f, height,0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 0.5f]);
             for (int i = 0; i <= Slices; i++)
             {
-                vertecies.AddRange([TopRadius * x[i], height, TopRadius * y[i], 0.0f, 1.0f, 0.0f]);
+                Vector2 uv = textureCoordinate[i];
+                vertecies.AddRange([TopRadius * x[i], height, TopRadius * y[i], 0.0f, 1.0f, 0.0f, uv.X, uv.Y]);
             }
 
 
-            vertecies.AddRange([BottomRadius * 0.0f, -height, BottomRadius * 0.0f, 0.0f, -1.0f, 0.0f]);
+            vertecies.AddRange([0.0f, -height, 0.0f, 0.0f, -1.0f, 0.0f, 0.5f, 0.5f]);
             for (int i = 0; i <= Slices; i++)
             {
-                vertecies.AddRange([BottomRadius * x[i], -height, BottomRadius * y[i], 0.0f, -1.0f, 0.0f]);
+                Vector2 uv = textureCoordinate[i];
+                vertecies.AddRange([BottomRadius * x[i], -height, BottomRadius * y[i], 0.0f, -1.0f, 0.0f, uv.X, uv.Y]);
             }
+
+
 
             //int k1 = 0;                         // 1st vertex index at base
             //int k2 = sectorCount + 1;           // 1st vertex index at top
@@ -223,7 +253,7 @@ namespace MyDailyLife.Objects.Shape.Cylinder
             {
                 Buffer = vertecies.ToArray(),
                 Indices = indices.ToArray(),
-                BufferBinding = BufferBinding.Vertices_Normals
+                BufferBinding = BufferBinding.Vertices_Normals_Texture_Coordinates
             };
         }
     }

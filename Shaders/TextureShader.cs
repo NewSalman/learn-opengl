@@ -9,7 +9,7 @@ namespace MyDailyLife.Shaders
 {
     public class TextureShader : Shader
     {
-        public TextureUnit[] TextureAttributes16 =
+        public TextureUnit[] TextureAttributes =
         [
             TextureUnit.Texture0,
             TextureUnit.Texture1, 
@@ -63,18 +63,12 @@ namespace MyDailyLife.Shaders
         {
             MaxTextureUnit = GL.GetInteger(GetPName.MaxTextureUnits);
         }
-
-        private void Activate()
+        public override void ActivateTextures()
         {
-            for(int i = 0; i < Textures.Length; i++)
+            for (int i = 0; i < Textures.Length; i++)
             {
-                Textures[i].Use(TextureAttributes16[i]);
+                Textures[i].Use(TextureAttributes[i]);
             }
-        }
-
-        protected override void ActivateTextures()
-        {
-            this.Activate();
         }
     }
 }

@@ -12,7 +12,7 @@ namespace MyDailyLife.Shaders
         {
         }
 
-        protected override void ActivateTextures()
+        public override void ActivateTextures()
         {
             
         }

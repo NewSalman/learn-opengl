@@ -82,12 +82,20 @@ namespace MyDailyLife.UniformBuffers
             GL.BindBuffer(BufferTarget.UniformBuffer, Buffer);
             for (int i = 0; i < uniformBuffers.Length; i++)
             {
+
                 GL.BufferSubData(
                     BufferTarget.UniformBuffer,
                     uniformBuffers[i].Offset,
                     uniformBuffers[i].Size,
                     [uniformBuffers[i].Data]);
             }
+            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+        }
+
+        public void BindDataFloats(int size, nint offset, float[] data)
+        {
+            GL.BindBuffer(BufferTarget.UniformBuffer, Buffer);
+            GL.BufferSubData(BufferTarget.UniformBuffer, offset, size, data);
             GL.BindBuffer(BufferTarget.UniformBuffer, 0);
         }
 

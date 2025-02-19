@@ -20,7 +20,7 @@ namespace MyDailyLife
             // This will correct that, making the texture display properly.
             StbImage.stbi_set_flip_vertically_on_load(1);
 
-            using (Stream stream = File.OpenRead(path))
+            using (Stream stream = File.OpenRead($"Assets/Textures/{path}"))
             {
                 ImageResult image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
 

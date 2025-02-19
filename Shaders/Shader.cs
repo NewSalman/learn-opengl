@@ -91,8 +91,6 @@ namespace MyDailyLife.Shaders
         public void Use()
         {
             GL.UseProgram(Handle);
-
-            this.ActivateTextures();
         }
 
         protected virtual void Dispose(bool disposing)
@@ -103,30 +101,35 @@ namespace MyDailyLife.Shaders
                 disposedValue = true;
             }
         }
-        abstract protected void ActivateTextures();
+        abstract public void ActivateTextures();
 
         public void SetInt(string name, int value)
         {
-            GL.UseProgram(Handle);
+            
             GL.Uniform1(_uniformLocations[name], value);
         }
 
         public void SetMatrix4(string name, Matrix4 value)
         {
-            GL.UseProgram(Handle);
             GL.UniformMatrix4(_uniformLocations[name], true, ref value);
         }
 
         public void SetFloat(string name, float value)
         {
-            GL.UseProgram(Handle);
             GL.Uniform1(_uniformLocations[name], value);
         }
 
         public void SetVec3(string name, Vector3 value)
         {
-            GL.UseProgram(Handle);
             GL.Uniform3(_uniformLocations[name], value);
+        }
+
+        public void SetVectors3(Dictionary<string, Vector3> data)
+        {
+            foreach(KeyValuePair<string, Vector3> dataVec in data)
+            {
+                GL.Uniform3(_uniformLocations[dataVec.Key], dataVec.Value);
+            }
         }
 
         public int GetAttribLocation(string name)

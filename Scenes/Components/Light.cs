@@ -18,7 +18,7 @@ namespace MyDailyLife.Scenes.Components
         protected override Matrix4[] CreateModels()
         {
             Matrix4 model = Matrix4.CreateScale(0.2f);
-            model = model * Matrix4.CreateTranslation(Vector3.Zero);
+            model = model * Matrix4.CreateTranslation(LightPos);
 
             return [model];
         }
@@ -82,7 +82,6 @@ namespace MyDailyLife.Scenes.Components
         protected override void OnDraw(double deltaTime)
         {
             Matrix4 model = Matrix4.CreateScale(0.2f) * Matrix4.CreateTranslation(LightPos);
-
             SetMatrix("model", model);
 
             GL.DrawElements(PrimitiveType.Triangles, Geometry.Indices.Length, DrawElementsType.UnsignedInt, 0);

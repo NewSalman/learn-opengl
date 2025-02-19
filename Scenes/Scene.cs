@@ -13,6 +13,7 @@ namespace MyDailyLife.Scenes
 
         private bool _firstMove = true;
         private Vector2 _lastPosition;
+        private bool _freeMouse = false;
 
         private UniformBuffer CameraUniform { get; set; }
         private UniformBufferData<Matrix4>[] CameraBufferData = new UniformBufferData<Matrix4>[2]; 
@@ -47,7 +48,7 @@ namespace MyDailyLife.Scenes
         public Scene(float aspectRatio)
         {
 
-            MainCamera = new Camera(Vector3.UnitZ * 3, aspectRatio);
+            MainCamera = new Camera(Vector3.UnitZ * 5, aspectRatio);
 
             CameraUniform = new(CameraBufferInfo.Size, UBO.CameraBlockPoint);
             CameraBufferData[0] = new UniformBufferData<Matrix4>(CameraBufferInfo.EachSize, CameraBufferInfo.ViewOffset, MainCamera.GetViewMatrix());
@@ -103,6 +104,16 @@ namespace MyDailyLife.Scenes
             }
         }
 
+        public virtual CursorState MouseCursorState()
+        {
+            if(_freeMouse)
+            {
+                return CursorState.Hidden;
+            }
+
+            return CursorState.Grabbed;
+        }
+
         public virtual void ListenMouseWheelEvent(MouseWheelEventArgs args)
         {
             MainCamera.FOV -= args.OffsetY;
@@ -138,6 +149,11 @@ namespace MyDailyLife.Scenes
             if (inputKey.IsKeyDown(Keys.LeftShift))
             {
                 MainCamera.Position -= MainCamera.Front * _speed * (float)_deltaTime;
+            }
+
+            if(inputKey.IsKeyDown(Keys.LeftAlt))
+            {
+                _freeMouse = !_freeMouse;
             }
         }
 

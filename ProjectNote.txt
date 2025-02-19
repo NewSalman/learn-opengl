@@ -1,0 +1,43 @@
+# current update 2/17/25
+
+1. Camera new render per scene
+2. Camera UBO/ Uniform Buffer Object done
+3. Adding Light UBO to World Scene
+	- Light position updated with ubo rather then update uniform matrix
+4. fix Light Object on world scene, when i update camera UBO Key to CameraBlock but in Light vertex shader still old "Matrices"
+5. Mouse and Keyboard input handle from abstract class Scene
+
+next planned update
+1. Add lightning material to Cylinder
+2. Add a sky block for nicer view
+3. Set Material texture with downloaded texture image "Concret"
+4. Make an Arch 
+5. Learn to make an Toroid/Torus to make an arch
+6. Make shader dynamic
+	- add file for header for #version 
+	- add in/out 
+	- add Unifrom Buffer binding
+	- add the object calculation
+	- merge it into one
+	- make sure the offset of each properties are correct
+
+	//LightningShader.SetVec3("lightPos", lightPosition);
+    //LightningShader.SetVec3("viewPos", _camera.Position);
+
+# Last Update on 2/17/25
+1. Lightning still showing black
+2. uniform buffer specular it's just showing black even the color should't be white or black
+
+==============================================================================================
+
+update on 2/19/25
+
+1. Bug on stride or size of buffer on Vertice_normals_texture_coordinates should be 8 * sizeof(float) not 9 * sizeof(float)
+2. i dont know why, i dont have to normalize normals again on the fragment shader based on input from vertex shader
+3. adding concrete texture to cylinder object
+4. cylinder object mimic gold material done
+5. Height of cylinder not using the cylinder class property bcuz debug error from preview learning
+6. uniform have to used in fragment (maybe on vertex to) or it will return error without any message
+
+
+
