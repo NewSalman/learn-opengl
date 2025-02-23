@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Xml.Linq;
 using MyDailyLife.Extension;
 using MyDailyLife.Scenes;
@@ -8,156 +9,124 @@ using OpenTK.Mathematics;
 
 namespace MyDailyLife.Meshes
 {
-    public enum BufferBinding
+    public class Mesh
     {
-        Vertices_Only,
-        Vertices_Normals,
-        Vertices_Colors,
-        Vertices_Normals_Colors,
-        Vertices_Normals_Texture_Coordinates,
-    }
-
-    public class Vertex(Vector3 vertex, Vector3 normal)
-    {
-        public Vector3 Position = vertex;
-        public Vector3 Normal = normal;
-    }
-
-    public class ColorVertex(Vector3 vertex, Vector3 normal, Vector3 color) : Vertex(vertex, normal)
-    {
-        public Vector3 Color { get; private set; } = color;
-    }
-
-    public class TextureVertex(Vector3 vertex, Vector3 normal, Vector2 uv) : Vertex(vertex, normal)
-    {
-        public Vector2 TextureCoordinate { get; private set; } = uv;
-    }
-
-    public class Mesh : IMesh, IDisposable
-    {
-        public Color4? Color { get; set; }
-        public Shader Shader { get; set; }
-        protected Vertex[] Vertecies {  get; set; }
-        public uint[] Indices { get; set; } = [];
+        private int _vao;
+        private int _vbo;
+        private int _ebo;
         protected float[] Buffer { get; set; }
+        protected uint[] Indices { get; set; } = [];
 
-        public Mesh(Geometry geometry)
+        protected List<BufferType> BufferOrder;
+
+
+        public Mesh(VertexBuffer buffer)
         {
-            Buffer = geometry.Buffer;
-            Indices = geometry.Indices;
+            Buffer = buffer.Data.ToArray();
+            Indices = buffer.Indices.ToArray();
+            BufferOrder = buffer.BufferOrder;
 
             CreateVAO();
+            OnVertexArrayBinded(() =>
+            {
+                CreateVBO();
 
-            CreateVBO();
+                CreateEBO();
 
-            CreateEBO();
-
-            EnableVertexAttrib(geometry.BufferBinding);
+                EnableVertexAttribs();
+            });
         }
 
-        protected override void CreateVAO()
+        protected void CreateVAO()
         {
-            Vao = GL.GenVertexArray();
-            GL.BindVertexArray(Vao);
+            _vao = GL.GenVertexArray();
         }
 
-        protected override void CreateVBO()
+        protected void CreateVBO()
         {
-            Vbo = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
+            float[] testData = new float[Buffer.Length];
+            _vbo = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, Buffer.Length * sizeof(float), Buffer, BufferUsageHint.StaticDraw);
         }
 
-        protected override void CreateEBO()
+        protected void CreateEBO()
         {
             if (Indices.Length > 0)
             {
-                Ebo = GL.GenBuffer();
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, Ebo);
+                _ebo = GL.GenBuffer();
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, Indices.Length * sizeof(uint), Indices, BufferUsageHint.StaticDraw);
             }
         }
 
-        protected override void EnableVertexAttrib(BufferBinding binding = BufferBinding.Vertices_Normals_Colors)
+        protected void EnableVertexAttribs()
         {
-            int stride = 9 * sizeof(float);
-
-            switch (binding)
+            int stride = CountStride();
+            int nextBufferOffset = 0;
+            for (int i = 0; i < BufferOrder.Count; i++)
             {
-                case BufferBinding.Vertices_Normals_Colors:
-                    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
-                    GL.EnableVertexAttribArray(0);
+                BufferType currentOrder = BufferOrder[i];
 
-                    GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
-                    GL.EnableVertexAttribArray(1);
+                switch (currentOrder)
+                {
+                    case BufferType.Vertex:
+                    case BufferType.Normal:
+                    case BufferType.Color:
+                        GL.VertexAttribPointer(i, 3, VertexAttribPointerType.Float, false, stride, nextBufferOffset);
+                        GL.EnableVertexAttribArray(i);
+                        nextBufferOffset += 3 * sizeof(float);
+                        break;
+                    case BufferType.TextureCoordinate:
+                        GL.VertexAttribPointer(i, 2, VertexAttribPointerType.Float, false, stride, nextBufferOffset);
+                        GL.EnableVertexAttribArray(i);
+                        nextBufferOffset += 2 * sizeof(float);
+                        break;
+                }
 
-                    GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
-                    GL.EnableVertexAttribArray(2);
-                    break;
+            }
+        }
 
-                case BufferBinding.Vertices_Normals_Texture_Coordinates:
-                    stride = 8 * sizeof(float);
+        private int CountStride()
+        {
+            int stride = 0;
+            for (int i = 0; i < BufferOrder.Count; i++)
+            {
+                BufferType currentOrder = BufferOrder[i];
 
-                    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
-                    GL.EnableVertexAttribArray(0);
-
-                    GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
-                    GL.EnableVertexAttribArray(1);
-
-                    GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
-                    GL.EnableVertexAttribArray(2);
-                    break;
-
-                case BufferBinding.Vertices_Normals:
-                    stride = 6 * sizeof(float);
-
-                    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
-                    GL.EnableVertexAttribArray(0);
-
-                    GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
-                    GL.EnableVertexAttribArray(1);
-                    break;
-
-                case BufferBinding.Vertices_Colors:
-                    stride = 6 * sizeof(float);
-                    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
-                    GL.EnableVertexAttribArray(0);
-
-                    GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
-                    GL.EnableVertexAttribArray(1);
-                    break;
-
-
-                case BufferBinding.Vertices_Only:
-                    stride = 3 * sizeof(float);
-
-                    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
-                    GL.EnableVertexAttribArray(0);
-                    break;
+                switch (currentOrder)
+                {
+                    case BufferType.Vertex:
+                    case BufferType.Normal:
+                    case BufferType.Color:
+                        stride += 3 * sizeof(float);
+                        break;
+                    case BufferType.TextureCoordinate:
+                        stride += 3 * sizeof(float);
+                        break;
+                }
 
             }
 
-
-            GL.BindVertexArray(0);
+            return stride;
         }
-
-        public override void Render(double deltaTime) 
+        
+        public void OnVertexArrayBinded(Action action)
         {
-            GL.BindVertexArray(Vao);
-            OnDraw(deltaTime);
+            GL.BindVertexArray(_vao);
+            action();
             GL.BindVertexArray(0);
-        }
+        } 
 
         public void Dispose()
         {
-            Shader?.Dispose();
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
             GL.UseProgram(0);
 
-            GL.DeleteBuffer(Vbo);
-            GL.DeleteBuffer(Ebo);
-            GL.DeleteVertexArray(Vao);
+            GL.DeleteBuffer(_vbo);
+            GL.DeleteBuffer(_ebo);
+            GL.DeleteVertexArray(_vao);
         }
 
     }

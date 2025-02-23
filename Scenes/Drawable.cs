@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MyDailyLife.Constants;
-using MyDailyLife.Material;
+﻿using MyDailyLife.Constants;
 using MyDailyLife.Meshes;
+using MyDailyLife.Scenes.Objects.Structure;
 using MyDailyLife.Shaders;
 using OpenTK.Mathematics;
 
@@ -13,19 +8,23 @@ namespace MyDailyLife.Scenes
 {
     public abstract class Drawable : IDisposable
     {
-        private Shader? _shader { get; set; }
-        private Mesh? _mesh { get; set; }
-        protected Matrix4[] Models { get; set; } = [];
-        protected Geometry Geometry { get; set; }
-        
-        protected void Initialize()
-        {
-            Geometry = CreateGeometry();
-            _mesh = CreateMesh(Geometry);
-            _shader = CreateShader();
-            Models = CreateModels();
+        private Shader _shader { get; set; }
+        private Mesh _mesh { get; set; }
+        private List<Structure> _objectStructure { get; set; }
 
-            _mesh.OnDraw = OnDraw;
+
+        private VertexBuffer _buffer { get; set; }
+        protected VertexBuffer Buffer => _buffer;
+        
+        public Drawable()
+        {
+            _objectStructure = AddObjectStructure();
+            _buffer = CreateBuffer(_objectStructure);
+
+            _buffer.Data = MergeBuffer();
+
+            _mesh = CreateMesh(Buffer);
+            _shader = CreateShader();
 
             InitializeUBOBinding(_shader);
             AfterObjectCreated();
@@ -38,6 +37,10 @@ namespace MyDailyLife.Scenes
             int clippedBlockIndex = _shader.GetUniformBlockIndex(UBO.CameraBlockKey);
 
             _shader.SetUniformBlockBinding(clippedBlockIndex, UBO.CameraBlockPoint);
+
+
+            //int lightBlockIndex = shader.GetUniformBlockIndex(UBO.LightPositionBlockKey);
+            //shader.SetUniformBlockBinding(lightBlockIndex, UBO.LightPositionBlockPoint);
         }
 
         protected virtual void AfterObjectCreated()
@@ -45,62 +48,66 @@ namespace MyDailyLife.Scenes
 
         }
 
-        abstract protected Matrix4[] CreateModels();
         abstract protected Shader CreateShader();
-        abstract protected void OnDraw(double DeltaTime);
-        abstract protected Mesh CreateMesh(Geometry geometry);
-        abstract protected Geometry CreateGeometry();
+        abstract protected Mesh CreateMesh(VertexBuffer buffer);
+        abstract protected VertexBuffer CreateBuffer(List<Structure> objectsStructure);
+        abstract protected void Draw(double deltatime);
+        abstract protected List<Structure> AddObjectStructure();
+        abstract protected List<float> MergeBuffer();
+
         protected void SetMatrix(string name, Matrix4 data)
         {
-            _shader!.SetMatrix4(name, data);
+            _shader.SetMatrix4(name, data);
         }
-
-
         protected void SetVector3(string name, Vector3 data)
         {
-            _shader!.SetVec3(name, data);
+            _shader.SetVec3(name, data);
         }
 
         protected void SetFloat(string name, float data)
         {
-            _shader!.SetFloat(name, data);
+            _shader.SetFloat(name, data);
         }
 
         protected void SetVectors3(Dictionary<string, Vector3> data)
         {
-            _shader!.SetVectors3(data);
+            _shader.SetVectors3(data);
         }
 
         protected void SetInt(string name, int value)
         {
-            _shader!.SetInt(name, value);
+            _shader.SetInt(name, value);
         }
 
-        protected void UseProgram(Action<Shader> action)
+        public virtual void Render(double deltaTime)
         {
-            _shader!.Use();
-            action(_shader!);
-        }
-
-        public void Render(double deltaTime)
-        {
-            if (_mesh == null || _shader == null)
+            _mesh.OnVertexArrayBinded(() =>
             {
-                throw new NullReferenceException("value not instanciated, make sure call initialize is called");
+                _shader!.Use();
+                Draw(deltaTime);
+            });
+
+        }
+
+        protected List<float> Vec3ToFloatArr(List<Vector3> vectors)
+        {
+            List<float> result = new();
+
+            for (int i = 0, k = 0; i < vectors.Count; i++, k += 3)
+            {
+                Vector3 current = vectors[i];
+
+                result.AddRange([current.X, current.Y, current.Z]);
             }
-            _shader!.Use();
-            _mesh.Render(deltaTime);
+
+            return result;
+
         }
 
         public void Dispose()
         {
-            _mesh!.Dispose();
+            _shader.Dispose();
+            _mesh.Dispose();
         }
-    }
-     public struct Geometry
-    {
-        public float[] Buffer;
-        public uint[] Indices;
-        public BufferBinding BufferBinding;
     }
 }

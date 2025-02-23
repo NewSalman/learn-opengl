@@ -39,5 +39,13 @@ update on 2/19/25
 5. Height of cylinder not using the cylinder class property bcuz debug error from preview learning
 6. uniform have to used in fragment (maybe on vertex to) or it will return error without any message
 
+7. lightning moving not following the lightPosition and lamp/sun object position, when the source move horizontally but the light move vertically no mater the calculate light position
+	calculation
+
+
+update on 2/20/25
+
+
+
 
 

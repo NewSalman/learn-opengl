@@ -1,14 +1,5 @@
-﻿using OpenTK.Compute.OpenCL;
-using System.Diagnostics.Metrics;
-using System.Diagnostics;
-using System.Resources;
-using System.Runtime.InteropServices;
-using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using MyDailyLife.Objects;
 
 namespace MyDailyLife.Shaders
 {
@@ -93,14 +84,6 @@ namespace MyDailyLife.Shaders
             GL.UseProgram(Handle);
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                GL.DeleteProgram(Handle);
-                disposedValue = true;
-            }
-        }
         abstract public void ActivateTextures();
 
         public void SetInt(string name, int value)
@@ -157,8 +140,8 @@ namespace MyDailyLife.Shaders
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            GL.DeleteProgram(Handle);
+            disposedValue = true;
         }
     }
 }

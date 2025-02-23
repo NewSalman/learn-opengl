@@ -9,8 +9,6 @@ namespace MyDailyLife.Scenes
 {
     public abstract class Scene : IDisposable
     {
-        readonly List<Drawable> _objects = [];
-
         private bool _firstMove = true;
         private Vector2 _lastPosition;
         private bool _freeMouse = false;
@@ -56,29 +54,13 @@ namespace MyDailyLife.Scenes
 
         }
 
-
-        public void AddObject(Drawable obj)
-        {
-            _objects.Add(obj);
-        }
-
-        public void AddObject(Drawable[] objs)
-        {
-            _objects.AddRange(objs);
-        } 
-
         public virtual void Render(double deltaTime)
         {
             _deltaTime = deltaTime;
             CameraBufferData[0].Data = MainCamera.GetViewMatrix();
             CameraBufferData[1].Data = MainCamera.GetProjectionMatrix();
 
-            CameraUniform.BindDataMatrices([..CameraBufferData]);
-
-            for (int i = 0; i < _objects.Count; i++)
-            {
-                _objects[i].Render(deltaTime);
-            }
+            CameraUniform.BindDataMatrices([.. CameraBufferData]);
         }
 
         public virtual void OnUpdateFrame(FrameEventArgs frame)
@@ -164,28 +146,13 @@ namespace MyDailyLife.Scenes
 
         protected virtual void Release()
         {
-            _objects.ForEach((obj) => { obj.Dispose(); });
             //CameraUniform.Dispose();
         }
         
         public void Dispose()
         {
             Release();
-            //Dispose(true);
         }
-
-        //protected virtual void Dispose(bool disposing)
-        //{
-        //    if (!Disposed)
-        //    {
-        //        if (disposing)
-        //        {
-        //            Objects.ForEach((obj) => { obj.Dispose(); });
-        //        }
-
-        //        Disposed = !Disposed;
-        //    }
-        //}
 
 
     }

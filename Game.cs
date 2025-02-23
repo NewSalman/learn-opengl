@@ -25,8 +25,6 @@ namespace MyDailyLife
 
         private float WindowRatio { get; set; }
         private GameArgs Args { get; set; }
-        private int Ubo { get; set; }
-        private int UboSize {  get; set; }
 
         private readonly List<Scene> Scenes = new();
         private Scene? SelectedScene;
@@ -46,15 +44,6 @@ namespace MyDailyLife
 
             Scene worldScene = new WorldScene(WindowRatio);
 
-          
-
-            ////// Load Texture
-            ////_texture = new("Assets/Textures/container.jpg");
-
-            ////_texture1 = new("Assets/Textures/awesomeface.png");
-
-
-            ////Shader = new TextureShader("shader.vert", "shader.frag", [_texture, _texture1]);
             Scenes.Add(worldScene);
 
             SelectedScene = Scenes[0];
@@ -87,8 +76,6 @@ namespace MyDailyLife
                 Console.WriteLine($"OpenGL Error: {error}");
                 // Handle the error appropriately (e.g., throw an exception)
             }
-
-
 
             SwapBuffers();
         }
@@ -132,25 +119,6 @@ namespace MyDailyLife
 
         protected override void OnUnload()
         {
-            //Note: After the program ends, all resources used by the process is freed.This means there is no need to delete buffers
-            //before closing your program.But if you want to delete buffers for other reasons like limiting VRAM usage,
-            //you can do the following:
-
-            //Shader.Dispose();
-            //LightningShader.Dispose();
-
-            //GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            //GL.BindVertexArray(0);
-            //GL.UseProgram(0);
-
-            //GL.DeleteBuffer(VertexBufferObject);
-            //GL.DeleteBuffer(ElementBufferObject);
-            //GL.DeleteVertexArray(VertexArrayObject);
-            //GL.DeleteBuffer(Ubo);
-
-            //LightningSource.Dispose();
-            //LightCubeMesh.Dispose();
-            //CubeMesh.Dispose();
 
             for(int i = 0; i < Scenes.Count; i++)
             {
