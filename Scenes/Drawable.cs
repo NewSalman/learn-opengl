@@ -1,33 +1,40 @@
 ﻿using MyDailyLife.Constants;
 using MyDailyLife.Meshes;
-using MyDailyLife.Scenes.Objects.Structure;
+using MyDailyLife.Scenes.Objects.ObjectStructure;
 using MyDailyLife.Shaders;
 using OpenTK.Mathematics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MyDailyLife.Scenes
 {
-    public abstract class Drawable : IDisposable
+    public abstract class Drawable<T> where T : Structure
     {
         private Shader _shader { get; set; }
         private Mesh _mesh { get; set; }
-        private List<Structure> _objectStructure { get; set; }
+        protected List<T> DrawableObjects { get; set; }
 
 
-        private VertexBuffer _buffer { get; set; }
-        protected VertexBuffer Buffer => _buffer;
-        
-        public Drawable()
+        private VertexBuffer? _buffer { get; set; }
+        protected VertexBuffer? Buffer => _buffer;
+
+
+        private Matrix4 _model = Matrix4.Identity;
+        public Matrix4 Model => _model;
+
+        public Drawable(Matrix4 model)
         {
-            _objectStructure = AddObjectStructure();
-            _buffer = CreateBuffer(_objectStructure);
+            /// TODO: still can't rotate objects as whole
+            //_model = _model * Matrix4.CreateRotationX(MathHelper.DegreesToRadians(90f));
 
-            _buffer.Data = MergeBuffer();
+            DrawableObjects = AddObjectStructures();
 
-            _mesh = CreateMesh(Buffer);
+            _buffer = MergeBuffer(DrawableObjects);
+            if (_buffer == null) throw new ArgumentNullException("buffer is null");
+            _mesh = CreateMesh(_buffer);
             _shader = CreateShader();
 
             InitializeUBOBinding(_shader);
-            AfterObjectCreated();
+            Initialized();
         }
 
         protected virtual void InitializeUBOBinding(Shader shader) 
@@ -35,29 +42,80 @@ namespace MyDailyLife.Scenes
             _shader!.Use();
 
             int clippedBlockIndex = _shader.GetUniformBlockIndex(UBO.CameraBlockKey);
-
             _shader.SetUniformBlockBinding(clippedBlockIndex, UBO.CameraBlockPoint);
 
 
-            //int lightBlockIndex = shader.GetUniformBlockIndex(UBO.LightPositionBlockKey);
-            //shader.SetUniformBlockBinding(lightBlockIndex, UBO.LightPositionBlockPoint);
+            int lightBlockIndex = shader.GetUniformBlockIndex(UBO.LightPositionBlockKey);
+            shader.SetUniformBlockBinding(lightBlockIndex, UBO.LightPositionBlockPoint);
         }
 
-        protected virtual void AfterObjectCreated()
+
+        protected virtual void Initialized()
         {
 
         }
 
         abstract protected Shader CreateShader();
         abstract protected Mesh CreateMesh(VertexBuffer buffer);
-        abstract protected VertexBuffer CreateBuffer(List<Structure> objectsStructure);
         abstract protected void Draw(double deltatime);
-        abstract protected List<Structure> AddObjectStructure();
-        abstract protected List<float> MergeBuffer();
-
-        protected void SetMatrix(string name, Matrix4 data)
+        abstract protected List<T> AddObjectStructures();
+        protected virtual VertexBuffer MergeBuffer(List<T> objectsStructure)
         {
-            _shader.SetMatrix4(name, data);
+            List<float> buffer = [];
+            List<uint> indices = [];
+
+            for (int i = 0; i < objectsStructure.Count; i++)
+            {
+                T? structure = objectsStructure[i];
+
+                if(structure is null) throw new NullReferenceException("strucure is null");
+
+                buffer.AddRange(structure?.MergedBuffer() ?? []);
+                indices.AddRange(structure?.Indices ?? []);
+            }
+
+            Type sType = typeof(T);
+
+            if(sType == typeof(TexturedStructure))
+            {
+                return new VertexBuffer(buffer, indices, [BufferType.Vertex, BufferType.Normal, BufferType.TextureCoordinate]);
+            }
+
+            if(sType == typeof(ColoredStrucure))
+            {
+                return new VertexBuffer(buffer, indices, [BufferType.Vertex, BufferType.Normal, BufferType.Color]);
+            }
+
+            return new VertexBuffer(buffer, indices, [BufferType.Vertex, BufferType.Normal]);
+        }
+
+        public void RotateX(float degrees)
+        {
+            _model = _model * Matrix4.CreateRotationX(MathHelper.DegreesToRadians(degrees));
+        }
+        public void RotateY(float degrees)
+        {
+            _model = _model * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(degrees));
+        }
+
+        public void RotateZ(float degress)
+        {
+            _model = _model * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(degress));
+        }
+
+        protected void SetMatrix(string name, dynamic matrix)
+        {
+            if(matrix is Matrix4)
+            {
+                Matrix4 mat4 = matrix;
+                _shader.SetMatrix4(name, mat4);
+            }
+
+            if(matrix is Matrix3)
+            {
+                Matrix3 mat3 = matrix;
+                _shader.SetMatrix3(name, mat3);
+            }
         }
         protected void SetVector3(string name, Vector3 data)
         {
@@ -79,6 +137,11 @@ namespace MyDailyLife.Scenes
             _shader.SetInt(name, value);
         }
 
+        protected void RequestProgramFocus()
+        {
+            _shader.Use();
+        }
+
         public virtual void Render(double deltaTime)
         {
             _mesh.OnVertexArrayBinded(() =>
@@ -89,25 +152,13 @@ namespace MyDailyLife.Scenes
 
         }
 
-        protected List<float> Vec3ToFloatArr(List<Vector3> vectors)
-        {
-            List<float> result = new();
-
-            for (int i = 0, k = 0; i < vectors.Count; i++, k += 3)
-            {
-                Vector3 current = vectors[i];
-
-                result.AddRange([current.X, current.Y, current.Z]);
-            }
-
-            return result;
-
-        }
-
         public void Dispose()
         {
             _shader.Dispose();
             _mesh.Dispose();
+
+            _buffer = null;
+            DrawableObjects = new();
         }
     }
 }

@@ -102,7 +102,7 @@ namespace MyDailyLife.Meshes
                         stride += 3 * sizeof(float);
                         break;
                     case BufferType.TextureCoordinate:
-                        stride += 3 * sizeof(float);
+                        stride += 2 * sizeof(float);
                         break;
                 }
 

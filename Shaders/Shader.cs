@@ -97,6 +97,10 @@ namespace MyDailyLife.Shaders
             GL.UniformMatrix4(_uniformLocations[name], true, ref value);
         }
 
+        public void SetMatrix3(string name, Matrix3 matrix)
+        {
+            GL.UniformMatrix3(_uniformLocations[name], true, ref matrix);
+        }
         public void SetFloat(string name, float value)
         {
             GL.Uniform1(_uniformLocations[name], value);

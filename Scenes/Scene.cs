@@ -13,8 +13,17 @@ namespace MyDailyLife.Scenes
         private Vector2 _lastPosition;
         private bool _freeMouse = false;
 
+
+        private float angle = 0.0f;
+        private float radius = 3.2f;
+        public static Vector3 LightPosition { get; private set; }
+
         private UniformBuffer CameraUniform { get; set; }
-        private UniformBufferData<Matrix4>[] CameraBufferData = new UniformBufferData<Matrix4>[2]; 
+        private UniformBufferData<Matrix4>[] CameraUniformData = new UniformBufferData<Matrix4>[2];
+
+
+        protected UniformBuffer LightUniform;
+        protected UniformBufferData<Vector3>[] LightUniformData = new UniformBufferData<Vector3>[5];
         protected Camera MainCamera { get; set; }
 
         private double _deltaTime;
@@ -49,18 +58,67 @@ namespace MyDailyLife.Scenes
             MainCamera = new Camera(Vector3.UnitZ * 5, aspectRatio);
 
             CameraUniform = new(CameraBufferInfo.Size, UBO.CameraBlockPoint);
-            CameraBufferData[0] = new UniformBufferData<Matrix4>(CameraBufferInfo.EachSize, CameraBufferInfo.ViewOffset, MainCamera.GetViewMatrix());
-            CameraBufferData[1] = new UniformBufferData<Matrix4>(CameraBufferInfo.EachSize, CameraBufferInfo.ProjectionOffset, MainCamera.GetProjectionMatrix());
+            CameraUniformData[0] = new UniformBufferData<Matrix4>(CameraBufferInfo.EachSize, CameraBufferInfo.ViewOffset, MainCamera.GetViewMatrix());
+            CameraUniformData[1] = new UniformBufferData<Matrix4>(CameraBufferInfo.EachSize, CameraBufferInfo.ProjectionOffset, MainCamera.GetProjectionMatrix());
 
+
+            CalculateLighOrbit();
+            // vec3 become vec4 in shader, it's why 4 times of sizeof(float) not 3
+            int uboLightSize = 5 * 4 * sizeof(float);
+            int lightVecSize = 4 * sizeof(float);
+            LightUniform = new(uboLightSize, UBO.LightPositionBlockPoint);
+
+            // light position
+            LightUniformData[0] = new(lightVecSize, 0, LightPosition);
+
+            // view position
+            LightUniformData[1] = new(lightVecSize, lightVecSize, MainCamera.Position);
+
+            // light ambient
+            LightUniformData[2] = new(lightVecSize, 2 * lightVecSize, new(0.4663f));
+
+            // light diffuse
+            LightUniformData[3] = new(lightVecSize, 3 * lightVecSize, new(0.7343f));
+
+            // light specular
+            LightUniformData[4] = new(lightVecSize, 4 * lightVecSize, new(1.0f));
+
+            LightUniform.BindDataVectors(LightUniformData);
+        }
+
+        private void CalculateLighOrbit()
+        {
+            angle += 4.0f * (float)DeltaTime * Speed;
+
+            if (angle > 360.0f)
+            {
+                angle -= 360.0f;
+            }
+
+            float orbitAndle = MathHelper.DegreesToRadians(angle);
+
+            float lightX = radius * (float)MathHelper.Cos(orbitAndle);
+            float lightZ = radius * (float)MathHelper.Sin(orbitAndle);
+
+            LightPosition =  new Vector3(lightX, -0.5f, lightZ);
+            //return new Vector3(lightX, lightZ, 1.0f);
         }
 
         public virtual void Render(double deltaTime)
         {
             _deltaTime = deltaTime;
-            CameraBufferData[0].Data = MainCamera.GetViewMatrix();
-            CameraBufferData[1].Data = MainCamera.GetProjectionMatrix();
 
-            CameraUniform.BindDataMatrices([.. CameraBufferData]);
+            CalculateLighOrbit();
+
+            CameraUniformData[0].Data = MainCamera.GetViewMatrix();
+            CameraUniformData[1].Data = MainCamera.GetProjectionMatrix();
+
+            CameraUniform.BindDataMatrices([CameraUniformData[0], CameraUniformData[1]]);
+
+            LightUniformData[0].Data = MainCamera.Position;
+            LightUniformData[1].Data = MainCamera.Position;
+
+            LightUniform.BindDataVectors([LightUniformData[0], LightUniformData[1]]);
         }
 
         public virtual void OnUpdateFrame(FrameEventArgs frame)
@@ -146,7 +204,8 @@ namespace MyDailyLife.Scenes
 
         protected virtual void Release()
         {
-            //CameraUniform.Dispose();
+            CameraUniform.Dispose();
+            LightUniform.Dispose();
         }
         
         public void Dispose()
