@@ -1,4 +1,5 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using MyDailyLife.Shaders.Parameters;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
 namespace MyDailyLife.Shaders
@@ -7,23 +8,42 @@ namespace MyDailyLife.Shaders
     {
         public int Handle;
 
-        private readonly int VertexShader;
-        private readonly int FragmentShader;
+        private int VertexShader;
+        private int FragmentShader;
         private bool disposedValue = false;
         //private int SharedUniformBlockIndex;
 
         private Dictionary<string, int> _uniformLocations = [];
 
+
+        [Obsolete(message: "Use FileShaderSource or StringShaderSource", error: false)]
         public Shader(string vertexPath, string fragmentPath)
         {
             string vertexShaderSource = File.ReadAllText($"Assets/Shaders/{vertexPath}");
             string fragmentShaderSource = File.ReadAllText($"Assets/Shaders/{fragmentPath}");
 
+            Initialize(vertexShaderSource, fragmentShaderSource);
+        }
+
+        public Shader(FileSourceShader source)
+        {
+            Initialize(source.VertexSource, source.FragmentSource);
+
+        }
+
+        public Shader(StringSourceShader source)
+        {
+            Initialize(source.VertexSource, source.FragmentSource);
+        }
+
+        private void Initialize(string vertexSource, string fragmentSource)
+        {
+
             VertexShader = GL.CreateShader(ShaderType.VertexShader);
-            GL.ShaderSource(VertexShader, vertexShaderSource);
+            GL.ShaderSource(VertexShader, vertexSource);
 
             FragmentShader = GL.CreateShader(ShaderType.FragmentShader);
-            GL.ShaderSource(FragmentShader, fragmentShaderSource);
+            GL.ShaderSource(FragmentShader, fragmentSource);
 
             GL.CompileShader(VertexShader);
 

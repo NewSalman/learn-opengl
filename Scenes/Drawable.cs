@@ -33,20 +33,16 @@ namespace MyDailyLife.Scenes
             _mesh = CreateMesh(_buffer);
             _shader = CreateShader();
 
-            InitializeUBOBinding(_shader);
+            BindUBO(_shader);
             Initialized();
         }
 
-        protected virtual void InitializeUBOBinding(Shader shader) 
+        protected virtual void BindUBO(Shader shader) 
         {
             _shader!.Use();
 
             int clippedBlockIndex = _shader.GetUniformBlockIndex(UBO.CameraBlockKey);
             _shader.SetUniformBlockBinding(clippedBlockIndex, UBO.CameraBlockPoint);
-
-
-            int lightBlockIndex = shader.GetUniformBlockIndex(UBO.LightPositionBlockKey);
-            shader.SetUniformBlockBinding(lightBlockIndex, UBO.LightPositionBlockPoint);
         }
 
 
@@ -70,8 +66,8 @@ namespace MyDailyLife.Scenes
 
                 if(structure is null) throw new NullReferenceException("strucure is null");
 
-                buffer.AddRange(structure?.MergedBuffer() ?? []);
-                indices.AddRange(structure?.Indices ?? []);
+                buffer.AddRange(structure.MergedBuffer());
+                indices.AddRange(structure.Indices);
             }
 
             Type sType = typeof(T);
@@ -101,6 +97,11 @@ namespace MyDailyLife.Scenes
         public void RotateZ(float degress)
         {
             _model = _model * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(degress));
+        }
+
+        public void Translate(Vector3 position)
+        {
+            _model = _model * Matrix4.CreateTranslation(position);
         }
 
         protected void SetMatrix(string name, dynamic matrix)

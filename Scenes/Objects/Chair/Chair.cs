@@ -5,6 +5,7 @@ using OpenTK.Mathematics;
 using MyDailyLife.Scenes.Objects.ObjectStructure;
 using MyDailyLife.Extension;
 using MyDailyLife.Scenes.Objects.Chair.Structures;
+using MyDailyLife.Constants;
 
 namespace MyDailyLife.Scenes.Objects.Chair
 {
@@ -18,6 +19,14 @@ namespace MyDailyLife.Scenes.Objects.Chair
 
         public Chair(Matrix4 model) : base(model)
         {
+        }
+
+        protected override void BindUBO(Shader shader)
+        {
+            base.BindUBO(shader);
+
+            int lightBlockIndex = shader.GetUniformBlockIndex(UBO.LightPositionBlockKey);
+            shader.SetUniformBlockBinding(lightBlockIndex, UBO.LightPositionBlockPoint);
         }
 
         protected override void Initialized()

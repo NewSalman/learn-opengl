@@ -115,7 +115,10 @@ namespace MyDailyLife.Scenes
 
             CameraUniform.BindDataMatrices([CameraUniformData[0], CameraUniformData[1]]);
 
+            // Debug Only
+#if DEBUG
             LightUniformData[0].Data = MainCamera.Position;
+#endif
             LightUniformData[1].Data = MainCamera.Position;
 
             LightUniform.BindDataVectors([LightUniformData[0], LightUniformData[1]]);

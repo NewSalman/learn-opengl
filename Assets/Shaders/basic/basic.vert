@@ -5,8 +5,6 @@ layout (location = 2) in vec2 aTexCoord;
 
 uniform mat4 model;
 uniform mat3 normalMat3;
-//uniform mat4 view;
-//uniform mat4 projection;
 
 layout (std140) uniform CameraBlock {
 	mat4 view;
