@@ -104,8 +104,6 @@ namespace MyDailyLife.Shaders
             GL.UseProgram(Handle);
         }
 
-        abstract public void ActivateTextures();
-
         public void SetInt(string name, int value)
         {
             

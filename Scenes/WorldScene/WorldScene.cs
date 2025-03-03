@@ -1,4 +1,5 @@
-﻿using MyDailyLife.Scenes.Objects.Chair;
+﻿using MyDailyLife.Constants;
+using MyDailyLife.Scenes.Objects.Chair;
 using MyDailyLife.Scenes.Objects.Ground;
 using MyDailyLife.Scenes.Objects.Sphere;
 using OpenTK.Mathematics;
@@ -13,6 +14,7 @@ namespace MyDailyLife.Scenes.WorldScene
 
         public WorldScene(float aspecRatio) : base(aspecRatio)
         {
+
             _sphere = new Sphere(Matrix4.Identity);
             _box = new(Matrix4.CreateTranslation(-(Vector3.UnitZ * 3.5f)));
             _ground = new(Matrix4.Identity);

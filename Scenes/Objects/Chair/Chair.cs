@@ -32,7 +32,10 @@ namespace MyDailyLife.Scenes.Objects.Chair
         protected override void Initialized()
         {
             RequestProgramFocus();
-            SetInt("material.diffuse", 0);
+
+            TextureLoader.Load(TextureConstants.CHAIR_WOOD, "Wood/wood_table_diff_4k.jpg");
+
+            SetInt("material.diffuse", TextureLoader.GetTextureLocation(TextureConstants.CHAIR_WOOD));
             SetVector3("material.specular", new(0.04f));
             SetFloat("material.shininess", 50);
         }
@@ -109,10 +112,7 @@ namespace MyDailyLife.Scenes.Objects.Chair
 
         protected override Shader CreateShader()
         {
-            Texture wood = new Texture("Wood/wood_table_diff_4k.jpg");
-            TextureShader shader = new TextureShader("basic/basic.vert", "basic/basic.frag", [wood]);
-
-            shader.ActivateTextures();
+            TextureShader shader = new("basic/basic.vert", "basic/basic.frag", []);
 
             return shader;
         }

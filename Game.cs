@@ -29,6 +29,8 @@ namespace MyDailyLife
         private readonly List<Scene> Scenes = new();
         private Scene? SelectedScene;
 
+        private TextureLoader _textureLoader = Dependencies.TextureLoader;
+
         public Game(GameArgs args) : base(GameWindowSettings.Default, new NativeWindowSettings() { ClientSize = (args.Width, args.Height), Title = args.Title })
         {
             Args = args;
@@ -47,6 +49,8 @@ namespace MyDailyLife
             Scenes.Add(worldScene);
 
             SelectedScene = Scenes[0];
+
+            _textureLoader.ActivateAll();
 
             GL.Enable(EnableCap.DepthTest);
 

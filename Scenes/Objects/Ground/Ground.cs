@@ -28,10 +28,14 @@ namespace MyDailyLife.Scenes.Objects.Ground
         protected override void Initialized()
         {
             base.Initialized();
-            RequestProgramFocus();
+            string groundPath = "Ground/Granite/4K/";
 
-            SetInt("material.diffuse", 0);
-            SetInt("material.normal", 1);
+            TextureLoader.Load(TextureConstants.GROUND_DIFFUSE, groundPath + "granite_tile_diff.jpg");
+            TextureLoader.Load(TextureConstants.GROUND_NORMAL, groundPath + "granite_tile_nor.jpg");
+
+            RequestProgramFocus();
+            SetInt("material.diffuse", TextureLoader.GetTextureLocation(TextureConstants.GROUND_DIFFUSE));
+            SetInt("material.normal", TextureLoader.GetTextureLocation(TextureConstants.GROUND_NORMAL));
             //SetInt("material.arm", 2);
         }
 
@@ -53,13 +57,13 @@ namespace MyDailyLife.Scenes.Objects.Ground
             //Texture arm = new Texture(path + "granite_tile_arm.jpg");
 
             TextureShader shader = new(new StringSourceShader(GroundShaderSource.VertexSource, GroundShaderSource.FragmentSource), [diffuse, normal]);
-            shader.ActivateTextures();
+
             return shader;
         }
 
         protected override void Draw(double deltatime)
         {
-            SetMatrix("model", Matrix4.CreateTranslation(new(0, 1, 0)));
+            SetMatrix("model", Matrix4.Identity);
             GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
         }
     }

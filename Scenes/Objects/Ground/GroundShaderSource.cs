@@ -72,7 +72,9 @@ namespace MyDailyLife.Scenes.Objects.Ground
 
             void main() {
                 vec3 lightDir = normalize(light.position - FragPos);
-                vec3 norm = texture(material.normal, TexCoord).rgb * 2.0 - 1.0;
+                vec3 norm = texture(material.normal, TexCoord).rgb;
+
+                norm = normalize(norm * 2.0 - 1.0);
 
                 vec3 viewDir = normalize(light.viewPos - FragPos);
 

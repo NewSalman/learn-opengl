@@ -11,10 +11,5 @@ namespace MyDailyLife.Shaders
         public BasicColorShader(string vertexPath, string fragmentPath) : base(vertexPath, fragmentPath)
         {
         }
-
-        public override void ActivateTextures()
-        {
-            
-        }
     }
 }

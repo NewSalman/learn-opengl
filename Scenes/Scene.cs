@@ -24,6 +24,7 @@ namespace MyDailyLife.Scenes
 
         protected UniformBuffer LightUniform;
         protected UniformBufferData<Vector3>[] LightUniformData = new UniformBufferData<Vector3>[5];
+
         protected Camera MainCamera { get; set; }
 
         private double _deltaTime;

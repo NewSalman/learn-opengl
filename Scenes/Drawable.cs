@@ -21,6 +21,8 @@ namespace MyDailyLife.Scenes
         private Matrix4 _model = Matrix4.Identity;
         public Matrix4 Model => _model;
 
+        protected TextureLoader TextureLoader = Dependencies.TextureLoader;
+
         public Drawable(Matrix4 model)
         {
             /// TODO: still can't rotate objects as whole
